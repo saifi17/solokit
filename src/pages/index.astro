@@ -54,23 +54,23 @@ const why = [
   <section id="tools" class="wrap home-section">
     <div class="section-head">
       <h2>The tools, in the order you'll use them</h2>
-      <p class="muted">Each one is for a moment you'll know from your own clients. And each hands off to the next: an accepted quote becomes an invoice, tracked hours become invoice lines, and an overdue invoice becomes a reminder email.</p>
+      <p class="muted">Each one is for a moment you'll know from your own clients, and each hands off to the next: an accepted quote becomes an invoice, tracked hours become invoice lines, an overdue invoice becomes a reminder.</p>
     </div>
     <ol class="journey">
       {tools.map((t) => (
         <li>
           <a class="tool-card" href={toolUrl(base, t.slug)}>
-            <span class="tc-top"><span class="tc-icon"><Icon name={t.icon} /></span><span class="tc-step">Step {t.step}: {t.stage}</span></span>
+            <span class="tc-step">Step {t.step}: {t.stage}</span>
             <span class="ask"><small>Client</small>“{t.ask}”</span>
-            <b>{t.name}</b>
+            <span class="tc-name"><span class="tc-icon"><Icon name={t.icon} size={17} /></span><b>{t.name}</b></span>
             <span class="d">{t.short}</span>
           </a>
         </li>
       ))}
       <li>
         <a class="tool-card ws-card" href={`${base}workspace/`}>
-          <span class="tc-top"><span class="tc-icon"><Icon name="folder" /></span><span class="tc-step">Always there</span></span>
-          <b>Your workspace</b>
+          <span class="tc-step">Always there</span>
+          <span class="tc-name"><span class="tc-icon"><Icon name="folder" size={17} /></span><b>Your workspace</b></span>
           <span class="d">Every invoice and quote, what's paid and what's overdue, your clients and backups.</span>
         </a>
       </li>

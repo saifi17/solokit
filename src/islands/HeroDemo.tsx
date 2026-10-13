@@ -28,7 +28,7 @@ function MeetPreview() {
           <div class="pvm-cells">{cols.map((t, i) => <i class={`${work(p.zone, t) ? 'w' : ''} ${best[i] ? 'b' : ''}`} />)}</div>
         </div>
       ))}
-      <div class="pv-note"><Icon name="check" size={16} />Best time: <strong>2–4 pm in London</strong>, 3–5 pm in Berlin, 9–11 am in New York</div>
+      <div class="pv-note"><Icon name="check" size={16} /><span>Best time: <strong>2–4 pm in London</strong>, 3–5 pm in Berlin, 9–11 am in New York</span></div>
     </div>
   );
 }
@@ -58,12 +58,11 @@ function QuotePreview() {
       <div class="pvd-head"><b>Morgan Studio</b><span class="pvd-title">Quote</span></div>
       <div class="pvd-meta"><span>Prepared for <b>Northwind Ltd</b></span><span>Valid for 30 days</span></div>
       <div class="pvd-lines">
-        <div><span>Discovery workshop</span><b>$600</b></div>
         <div><span>Website design, 5 pages</span><b>$2,800</b></div>
         <div><span>Development and launch</span><b>$1,400</b></div>
       </div>
-      <div class="pvd-total"><span>Total</span><b>$4,800</b></div>
-      <div class="pvd-deposit"><span>Deposit to start (50%)</span><b>$2,400</b></div>
+      <div class="pvd-total"><span>Total</span><b>$4,200</b></div>
+      <div class="pvd-deposit"><span>Deposit to start (50%)</span><b>$2,100</b></div>
     </div>
   );
 }
@@ -74,10 +73,9 @@ function TrackPreview() {
       <div class="pvt-timer"><span class="pill running">Running</span><b>1:42:18</b><span class="pvt-task">Checkout page, Northwind Ltd</span></div>
       <div class="pvt-list">
         <div><span>Homepage layout</span><b>3h 15m</b></div>
-        <div><span>Client call</span><b>45m</b></div>
         <div><span>Design revisions</span><b>2h 30m</b></div>
       </div>
-      <div class="pv-note"><Icon name="invoice" size={16} />6h 30m unbilled: <strong>one click turns it into an invoice</strong></div>
+      <div class="pv-note"><Icon name="invoice" size={16} /><span>5h 45m unbilled: <strong>one click turns it into an invoice</strong></span></div>
     </div>
   );
 }
@@ -91,8 +89,7 @@ function InvoicePreview() {
         <div><span>Website design</span><b>$2,800</b></div>
         <div><span>Development, 20 hrs</span><b>$1,600</b></div>
       </div>
-      <div class="pvd-total"><span>Amount due</span><b>$4,400</b></div>
-      <div class="pv-stamp">Paid</div>
+      <div class="pvd-total"><span>Amount due</span><span class="pv-stamp">Paid</span><b>$4,400</b></div>
     </div>
   );
 }

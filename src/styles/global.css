@@ -112,7 +112,7 @@ a:hover { color: var(--accent-hover); }
 
 h1, h2, h3, h4 { margin: 0; line-height: 1.12; color: var(--ink); font-weight: 700; }
 .display, h1 { font-stretch: var(--display-stretch); letter-spacing: -0.02em; }
-h1 { font-size: clamp(34px, 5.2vw, 60px); font-weight: 760; }
+h1 { font-size: clamp(30px, 3.4vw, 46px); font-weight: 760; }
 h2 { font-size: clamp(24px, 2.7vw, 32px); font-stretch: 108%; letter-spacing: -0.015em; }
 h3, .h3 { font-size: 18px; letter-spacing: -0.005em; }
 p { margin: 0; }
@@ -232,7 +232,7 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); width
 .seg button:hover { color: var(--ink); }
 
 /* ---------- Panels & workbench ---------- */
-.bench { background: var(--bench); border-block: 1px solid var(--line); padding: 32px 0 48px; }
+.bench { background: var(--bench); border-block: 1px solid var(--line); padding: 24px 0 40px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; box-shadow: var(--shadow-sm); }
 .panel + .panel { margin-top: 16px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
@@ -290,14 +290,19 @@ dialog.modal::backdrop { background: rgba(10, 12, 24, 0.45); }
 .modal-foot { position: sticky; bottom: 0; background: var(--surface); display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line); }
 
 /* ---------- Tool page chrome ---------- */
-.tool-head { padding: 40px 0 28px; }
-.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-3); margin-bottom: 18px; }
+.tool-head { padding: 28px 0 24px; }
+/* Desktop: title on the left, intro on the right, so the tool starts on the first screen. */
+@media (min-width: 1021px) {
+  .tool-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 500px); gap: 48px; align-items: end; padding: 26px 0 26px; }
+  .tool-head .th-side .lede { margin-top: 0; font-size: 17px; }
+}
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-3); margin-bottom: 12px; }
 .crumbs a { color: var(--ink-2); text-decoration: none; }
 .crumbs a:hover { color: var(--ink); text-decoration: underline; }
-.stage-chip { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 14px; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); padding: 5px 12px 5px 6px; border-radius: 999px; }
+.stage-chip { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); padding: 5px 12px 5px 6px; border-radius: 999px; }
 .stage-chip b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 12.5px; }
-.tool-head .lede { margin-top: 14px; }
-.tool-head .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 16px; font-size: 14px; color: var(--ink-2); }
+.tool-head .lede { margin-top: 10px; }
+.tool-head .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 14px; color: var(--ink-2); }
 .tool-head .trust span { display: inline-flex; align-items: center; gap: 6px; }
 .tool-head .trust svg { color: var(--ok); }
 
@@ -339,13 +344,13 @@ dialog.modal::backdrop { background: rgba(10, 12, 24, 0.45); }
 
 /* Tool cards (home + "all tools") */
 .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.tool-card { position: relative; display: grid; gap: 8px; align-content: start; padding: 20px; min-height: 170px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); text-decoration: none; color: var(--ink); transition: border-color .15s, box-shadow .15s, transform .15s; }
+.tool-card { position: relative; display: grid; gap: 6px; align-content: start; padding: 16px 18px 18px; min-height: 0; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); text-decoration: none; color: var(--ink); transition: border-color .15s, box-shadow .15s, transform .15s; }
 .tool-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); color: var(--ink); transform: translateY(-1px); }
-.tool-card .tc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.tool-card .tc-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: var(--accent-soft); color: var(--accent-ink); }
-.tool-card .tc-step { font-size: 13px; color: var(--ink-3); font-weight: 600; }
-.tool-card b { font-size: 17.5px; font-weight: 680; letter-spacing: -0.01em; }
-.tool-card span.d { color: var(--ink-2); font-size: 15px; line-height: 1.45; }
+.tool-card .tc-name { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.tool-card .tc-icon { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent-ink); }
+.tool-card .tc-step { font-size: 12px; color: var(--ink-3); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.tool-card b { font-size: 17px; font-weight: 680; letter-spacing: -0.01em; }
+.tool-card span.d { color: var(--ink-2); font-size: 14.5px; line-height: 1.42; }
 
 /* Empty state */
 .empty { text-align: center; padding: 36px 20px; color: var(--ink-2); border: 1.5px dashed var(--line-2); border-radius: var(--r-lg); display: grid; gap: 10px; justify-items: center; }

@@ -23,7 +23,7 @@ export const tools: Tool[] = [
     name: 'Meeting planner',
     title: 'Time zone meeting planner',
     short: 'Find the hours you share with clients abroad and send a calendar invite.',
-    ask: 'Can we hop on a call this week?',
+    ask: 'Can we talk this week?',
     icon: 'globe',
   },
   {
@@ -43,7 +43,7 @@ export const tools: Tool[] = [
     name: 'Quote generator',
     title: 'Project quote generator',
     short: 'Send a clear, priced quote with a deposit, timeline and terms.',
-    ask: 'How much for the whole project?',
+    ask: 'What will the project cost?',
     icon: 'quote',
   },
   {
@@ -63,7 +63,7 @@ export const tools: Tool[] = [
     name: 'Invoice generator',
     title: 'Invoice generator',
     short: 'Professional invoices with your logo. Save as PDF, no watermark.',
-    ask: 'Looks great! Send me the invoice.',
+    ask: 'Great work! Send me the invoice.',
     icon: 'invoice',
   },
   {
@@ -73,7 +73,7 @@ export const tools: Tool[] = [
     name: 'Payment fee calculator',
     title: 'Payment fee calculator',
     short: 'Compare what PayPal, Wise, Payoneer and Stripe leave you with.',
-    ask: 'How would you like to be paid?',
+    ask: 'How do you want to be paid?',
     icon: 'fee',
   },
   {
@@ -83,7 +83,7 @@ export const tools: Tool[] = [
     name: 'Payment reminders',
     title: 'Late payment email generator',
     short: 'Polite, firm reminder emails for unpaid invoices, ready to send.',
-    ask: "I'll pay it next week, promise.",
+    ask: "I'll pay next week, promise.",
     icon: 'mail',
   },
 ];

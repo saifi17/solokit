@@ -45,15 +45,19 @@ if (faq.length) {
 ---
 <Base title={title} description={description} jsonLd={jsonLd}>
   <section class="wrap tool-head">
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <a href={base}>SoloKit</a><span aria-hidden="true">/</span><a href={`${base}#tools`}>Tools</a><span aria-hidden="true">/</span><span>{tool.name}</span>
-    </nav>
-    <p class="stage-chip"><b>{tool.step}</b>Step {tool.step} of {tools.length}: {tool.stage}</p>
-    <h1>{h1}</h1>
-    <p class="lede">{lede}</p>
-    {trust.length > 0 && (
-      <p class="trust">{trust.map((t: string) => <span><Icon name="check" size={16} />{t}</span>)}</p>
-    )}
+    <div class="th-main">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={base}>SoloKit</a><span aria-hidden="true">/</span><a href={`${base}#tools`}>Tools</a><span aria-hidden="true">/</span><span>{tool.name}</span>
+      </nav>
+      <p class="stage-chip"><b>{tool.step}</b>Step {tool.step} of {tools.length}: {tool.stage}</p>
+      <h1>{h1}</h1>
+    </div>
+    <div class="th-side">
+      <p class="lede">{lede}</p>
+      {trust.length > 0 && (
+        <p class="trust">{trust.map((t: string) => <span><Icon name="check" size={16} />{t}</span>)}</p>
+      )}
+    </div>
   </section>
 
   <section class="bench" aria-label={tool.title}>
