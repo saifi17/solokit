@@ -3,8 +3,8 @@ import LogoMark from './LogoMark.astro';
 import { tools, toolUrl } from '../data/tools';
 const base = import.meta.env.BASE_URL;
 const year = new Date().getFullYear();
-const firstHalf = tools.slice(0, 4);
-const secondHalf = tools.slice(4);
+const winWork = tools.slice(0, 3);   // meet, price, quote
+const getPaid = tools.slice(3);      // track, invoice, fees, reminders
 ---
 <footer class="site-foot">
   <div class="wrap">
@@ -14,15 +14,15 @@ const secondHalf = tools.slice(4);
         <p>Free tools for freelancers who work with clients around the world. No sign-up, and your data never leaves your device.</p>
       </div>
       <div>
-        <h3>Before the work</h3>
-        <ul>{firstHalf.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
+        <h2>Win the work</h2>
+        <ul>{winWork.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
       </div>
       <div>
-        <h3>Getting paid</h3>
-        <ul>{secondHalf.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
+        <h2>Bill and get paid</h2>
+        <ul>{getPaid.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
       </div>
       <div>
-        <h3>SoloKit</h3>
+        <h2>SoloKit</h2>
         <ul>
           <li><a href={`${base}workspace/`}>Workspace</a></li>
           <li><a href={`${base}about/`}>About</a></li>

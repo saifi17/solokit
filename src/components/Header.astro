@@ -38,7 +38,7 @@ const base = import.meta.env.BASE_URL;
   </div>
 </header>
 <!-- Outside <header>: its blur effect would otherwise trap this fixed panel inside it. -->
-  <div class="mobile-nav" id="mobile-nav" hidden data-mobile-nav>
+<nav class="mobile-nav" id="mobile-nav" aria-label="Menu" hidden data-mobile-nav>
   <p class="group">Tools, in the order you'll use them</p>
   {tools.map((t) => (
     <a href={toolUrl(base, t.slug)}><span class="step"><Icon name={t.icon} size={18} /></span>{t.name}</a>
@@ -46,7 +46,7 @@ const base = import.meta.env.BASE_URL;
   <p class="group">SoloKit</p>
   <a href={`${base}workspace/`}><span class="step"><Icon name="folder" size={18} /></span>Workspace</a>
   <a href={`${base}about/`}><span class="step"><Icon name="info" size={18} /></span>About</a>
-</div>
+</nav>
 
 <script>
   // Header behaviour: Tools dropdown, mobile menu, theme switch.
@@ -77,6 +77,8 @@ const base = import.meta.env.BASE_URL;
     const current = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const next = current === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
+    // Browser toolbar colour on phones follows the chosen theme.
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', next === 'dark' ? '#0E1214' : '#FFFFFF'));
     try { localStorage.setItem('solokit:theme', next); } catch { /* ignore */ }
   });
 </script>

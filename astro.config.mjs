@@ -4,7 +4,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import { readdirSync, statSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -28,6 +28,13 @@ function serviceWorker() {
           }
         };
         walk(root);
+        // Astro puts a tiny <style> for its island wrappers in the page body,
+        // which isn't valid HTML. The same rule lives in global.css, so drop it.
+        const islandStyle = '<style>astro-island,astro-slot,astro-static-slot{display:contents}</style>';
+        for (const f of files.filter((x) => x.endsWith('.html'))) {
+          const html = readFileSync(join(root, f), 'utf8');
+          if (html.includes(islandStyle)) writeFileSync(join(root, f), html.replace(islandStyle, ''));
+        }
         const pages = files.filter((f) => f.endsWith('index.html')).map((f) => BASE + f.replace(/index\.html$/, ''));
         const assets = files
           .filter((f) => /^_astro\/.+\.(js|css)$/.test(f) || (/^_astro\/.+\.woff2$/.test(f) && /-latin-/.test(f)))

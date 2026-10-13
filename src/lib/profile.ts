@@ -14,6 +14,7 @@ export type Profile = {
   currency: string;
   defaultRate: number;     // hourly
   paymentDetails: string;  // bank / Wise / PayPal details printed on invoices
+  paymentLink: string;     // online payment link printed (and as a QR code) on invoices
   taxLabel: string;        // VAT, GST, Sales tax...
   taxRate: number;
   paymentTerms: number;    // days until an invoice is due
@@ -38,11 +39,12 @@ export const defaultProfile: Profile = {
   currency: 'USD',
   defaultRate: 0,
   paymentDetails: '',
+  paymentLink: '',
   taxLabel: 'Tax',
   taxRate: 0,
   paymentTerms: 14,
   template: 'modern',
-  accent: '#2D44D8',
+  accent: '#0F6B58',
   paper: 'A4',
   invoicePrefix: 'INV-',
   nextInvoice: 1,
@@ -53,7 +55,10 @@ export const defaultProfile: Profile = {
 const KEY = 'profile';
 
 export function getProfile(): Profile {
-  return { ...defaultProfile, ...load<Partial<Profile>>(KEY, {}) };
+  const p = { ...defaultProfile, ...load<Partial<Profile>>(KEY, {}) };
+  p.nextInvoice = Math.max(1, Math.floor(Number(p.nextInvoice) || 1));
+  p.nextQuote = Math.max(1, Math.floor(Number(p.nextQuote) || 1));
+  return p;
 }
 
 export function saveProfile(p: Profile) {

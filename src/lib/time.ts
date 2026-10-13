@@ -3,6 +3,7 @@ import { load, save } from './storage';
 import { uid } from './id';
 import { createDoc, saveDoc, type Doc } from './documents';
 import { fmtDate, toISO, round2 } from './format';
+import { toCSVText } from './csv';
 
 export type TimeEntry = {
   id: string;
@@ -62,13 +63,12 @@ export function invoiceEntries(client: string, ids: string[]): Doc {
 
 /** Timesheet as CSV (opens in Excel / Google Sheets). */
 export function toCSV(entries: TimeEntry[], currency: string): string {
-  const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
-  const rows = [['Date', 'Client', 'Task', 'Start', 'End', 'Hours', `Rate (${currency})`, `Amount (${currency})`, 'Invoice']];
+  const rows: (string | number)[][] = [['Date', 'Client', 'Task', 'Start', 'End', 'Hours', `Rate (${currency})`, `Amount (${currency})`, 'Invoice']];
   for (const e of [...entries].sort((a, b) => a.start - b.start)) {
     const s = new Date(e.start);
     const en = new Date(e.end);
     const t = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    rows.push([toISO(s), e.client, e.task, t(s), t(en), String(round2(duration(e) / 3600000)), String(e.rate), String(entryAmount(e)), e.billed]);
+    rows.push([toISO(s), e.client, e.task, t(s), t(en), round2(duration(e) / 3600000).toFixed(2), Number(e.rate || 0).toFixed(2), entryAmount(e).toFixed(2), e.billed]);
   }
-  return rows.map((r) => r.map(esc).join(',')).join('\r\n');
+  return toCSVText(rows);
 }

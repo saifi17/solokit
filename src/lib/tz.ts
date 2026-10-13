@@ -64,7 +64,9 @@ export function gmtLabel(zone: string, instant: number): string {
   return `GMT${sign}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`;
 }
 
-export type Place = { name: string; zone: string };
+/** A city in the planner. `start`/`end` are its own working hours, when
+ *  they differ from the default (for example a client who starts at 8am). */
+export type Place = { name: string; zone: string; start?: number; end?: number };
 
 /** City list plus every IANA zone the browser knows (for search). */
 export function allPlaces(): Place[] {

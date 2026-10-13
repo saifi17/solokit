@@ -1,9 +1,11 @@
 // Time zone meeting planner. Columns are the 24 hours of the chosen date in
 // the first city's time zone; each row shows the local time there.
+// Every city uses the default working hours unless it has its own (for
+// example, you work 1pm to 10pm to overlap with clients abroad).
 // Pick a slot, then copy it for an email, download a calendar invite or
 // share a link that opens the same plan.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { Field, Input, Seg, Icon, useStored, useNow, useToast, copyText } from './ui';
+import { Field, Input, Seg, Icon, Modal, useStored, useNow, useToast, copyText } from './ui';
 import { allPlaces, devicePlace, instantFor, local, fmtTime, gmtLabel, type Place } from '../lib/tz';
 import { buildICS, googleCalendarUrl, downloadFile } from '../lib/ics';
 import { todayISO } from '../lib/format';
@@ -19,6 +21,7 @@ export default function MeetingPlanner() {
   const [date, setDate] = useState(todayISO());
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<number | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
   const [toast, showToast] = useToast();
   const now = useNow(30000);
   const places = useMemo(() => allPlaces(), []);
@@ -30,9 +33,15 @@ export default function MeetingPlanner() {
     const q = new URLSearchParams(location.search);
     const c = q.get('c');
     if (c) {
-      const list = c.split(',').map((x) => { const [name, zone] = x.split('|'); return { name, zone }; }).filter((p) => p.name && p.zone && isZone(p.zone));
+      const list = c.split(',').map((x) => {
+        const [name, zone, hrs] = x.split('|');
+        const p: Place = { name, zone };
+        const [a, b] = (hrs || '').split('-').map((n) => parseInt(n, 10));
+        if (isHour(a) && isHour(b)) { p.start = a; p.end = b; }
+        return p;
+      }).filter((p) => p.name && p.zone && isZone(p.zone));
       const [hs, he] = (q.get('h') || '').split('-').map(Number);
-      if (list.length) setS({ ...s, places: list, start: Number.isFinite(hs) ? hs : s.start, end: Number.isFinite(he) ? he : s.end, title: q.get('t') || s.title });
+      if (list.length) setS({ ...s, places: list, start: isHour(hs) ? hs : s.start, end: isHour(he) ? he : s.end, title: q.get('t') || s.title });
       if (q.get('d')) setDate(q.get('d')!);
       if (q.get('s')) setPicked(Number(q.get('s')));
       return;
@@ -46,7 +55,10 @@ export default function MeetingPlanner() {
 
   const [y, mo, d] = date.split('-').map(Number);
   const home = s.places[0];
-  const isWork = (h: number) => (s.start < s.end ? h >= s.start && h < s.end : h >= s.start || h < s.end);
+  const hoursOf = (p: Place): [number, number] => (p.start != null && p.end != null ? [p.start, p.end] : [s.start, s.end]);
+  const hasOwnHours = (p: Place) => p.start != null && p.end != null;
+  const isWork = (p: Place, h: number) => { const [a, b] = hoursOf(p); return a < b ? h >= a && h < b : h >= a || h < b; };
+  const hoursText = (p: Place) => { const [a, b] = hoursOf(p); return `${fmtTime(a, 0, h12, true)}–${fmtTime(b, 0, h12, true)}`; };
   const isAwake = (h: number) => h >= 7 && h < 22;
 
   const cols = useMemo(() => {
@@ -54,7 +66,7 @@ export default function MeetingPlanner() {
     return Array.from({ length: 24 }, (_, h) => instantFor(home.zone, y, mo - 1, d, h));
   }, [home?.zone, y, mo, d]);
 
-  const best = cols.map((t) => s.places.every((p) => isWork(local(p.zone, t).hour)));
+  const best = cols.map((t) => s.places.every((p) => isWork(p, local(p.zone, t).hour)));
 
   // Longest run of "everyone working" hours, or the least-bad hour if none.
   const suggestion = useMemo(() => {
@@ -67,7 +79,7 @@ export default function MeetingPlanner() {
       i = j;
     }
     if (bestStart >= 0) return { start: bestStart, len: bestLen, overlap: true };
-    const score = cols.map((t) => s.places.reduce((sum, p) => { const h = local(p.zone, t).hour; return sum + (isWork(h) ? 0 : isAwake(h) ? 1 : 5); }, 0));
+    const score = cols.map((t) => s.places.reduce((sum, p) => { const h = local(p.zone, t).hour; return sum + (isWork(p, h) ? 0 : isAwake(h) ? 1 : 5); }, 0));
     const min = Math.min(...score);
     return { start: Math.max(0, score.indexOf(min)), len: 1, overlap: false };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -102,8 +114,19 @@ export default function MeetingPlanner() {
   }
   function removePlace(i: number) { setS({ ...s, places: s.places.filter((_, j) => j !== i) }); setPicked(null); }
   function makeFirst(i: number) { const list = [...s.places]; const [p] = list.splice(i, 1); setS({ ...s, places: [p, ...list] }); setPicked(null); }
+  /** Give one city its own working hours, or pass nulls to use the default again. */
+  function setOwnHours(i: number, start: number | null, end: number | null) {
+    const places = s.places.map((p, j) => {
+      if (j !== i) return p;
+      const { start: _a, end: _b, ...rest } = p;
+      return start == null || end == null || (start === s.start && end === s.end) ? rest : { ...rest, start, end };
+    });
+    setS({ ...s, places });
+    setPicked(null);
+  }
 
-  const dateLabel = (zone: string, t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: zone, weekday: 'short', day: 'numeric', month: 'short' });
+  // "Tue, 15 Sep" (some browsers write "Sept"; keep it the same everywhere).
+  const dateLabel = (zone: string, t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: zone, weekday: 'short', day: 'numeric', month: 'short' }).replace('Sept', 'Sep');
   const slotText = (p: Place) => {
     const a = local(p.zone, startInstant);
     const b = local(p.zone, endInstant);
@@ -119,7 +142,7 @@ export default function MeetingPlanner() {
   const shareUrl = () => {
     const u = new URL(location.href);
     u.search = '';
-    u.searchParams.set('c', s.places.map((p) => `${p.name}|${p.zone}`).join(','));
+    u.searchParams.set('c', s.places.map((p) => `${p.name}|${p.zone}${hasOwnHours(p) ? `|${p.start}-${p.end}` : ''}`).join(','));
     u.searchParams.set('d', date);
     u.searchParams.set('h', `${s.start}-${s.end}`);
     u.searchParams.set('s', String(slotStart));
@@ -152,10 +175,11 @@ export default function MeetingPlanner() {
         <div class="field">
           <span class="label">Working hours</span>
           <div class="hours-pair">
-            <div class="control"><select aria-label="Working day starts" value={s.start} onChange={(e) => setS({ ...s, start: Number((e.target as HTMLSelectElement).value) })}>{hourOptions}</select></div>
+            <div class="control"><select aria-label="Working day starts" value={s.start} onChange={(e) => { setS({ ...s, start: Number((e.target as HTMLSelectElement).value) }); setPicked(null); }}>{hourOptions}</select></div>
             <span class="faint">to</span>
-            <div class="control"><select aria-label="Working day ends" value={s.end} onChange={(e) => setS({ ...s, end: Number((e.target as HTMLSelectElement).value) })}>{hourOptions}</select></div>
+            <div class="control"><select aria-label="Working day ends" value={s.end} onChange={(e) => { setS({ ...s, end: Number((e.target as HTMLSelectElement).value) }); setPicked(null); }}>{hourOptions}</select></div>
           </div>
+          <span class="hint">Used for every city. To change one city, press its hours in the table.</span>
         </div>
         <div class="field">
           <span class="label">Meeting length</span>
@@ -186,10 +210,13 @@ export default function MeetingPlanner() {
                         </span>
                       </div>
                       <span class="city-sub">{i === 0 && <em>Main</em>}{fmtTime(nowL.hour, nowL.minute, h12)} now, {gmtLabel(p.zone, now)}</span>
+                      <button type="button" class={`city-hours${hasOwnHours(p) ? ' own' : ''}`} aria-haspopup="dialog" aria-label={`Working hours in ${p.name}: ${hoursText(p)}. Change`} onClick={() => setEditing(i)}>
+                        <Icon name="clock" size={12} />{hoursText(p)}
+                      </button>
                     </th>
                     {cols.map((t, c) => {
                       const l = local(p.zone, t);
-                      const cls = ['h', isWork(l.hour) ? 'work' : isAwake(l.hour) ? 'awake' : 'night'];
+                      const cls = ['h', isWork(p, l.hour) ? 'work' : isAwake(l.hour) ? 'awake' : 'night'];
                       if (best[c]) cls.push('best');
                       if (c >= slotStart && c < slotStart + slotCols) cls.push('sel');
                       if (now >= t && now < t + 3600000) cls.push('now');
@@ -197,7 +224,7 @@ export default function MeetingPlanner() {
                       return (
                         <td class={cls.join(' ')} onClick={() => setPicked(c)} title={`${p.name}: ${fmtTime(l.hour, l.minute, h12)} ${dateLabel(p.zone, t)}`}>
                           {fmtTime(l.hour, l.minute, h12, true)}
-                          {otherDay && <small>{dateLabel(p.zone, t).split(' ')[0]}</small>}
+                          {otherDay && <small>{dateLabel(p.zone, t).split(' ')[0].replace(',', '')}</small>}
                         </td>
                       );
                     })}
@@ -222,6 +249,9 @@ export default function MeetingPlanner() {
             </p>
             <p class="result-big meet-big">{home ? slotText(home) : '—'}</p>
             <p class="result-sub">{home && <>{dateLabel(home.zone, startInstant)} in {home.name}</>}</p>
+            {picked == null && !suggestion.overlap && s.places.length > 1 && (
+              <p class="next-tip"><Icon name="clock" size={16} />If you or your client can start earlier or work later, press that city's hours in the table and change them. The best time updates straight away.</p>
+            )}
           </div>
           <dl class="result-rows">
             {s.places.map((p) => (
@@ -237,10 +267,35 @@ export default function MeetingPlanner() {
           </div>
         </div>
       </div>
+      {(() => {
+        const i = editing;
+        const p = i != null ? s.places[i] : undefined;
+        const [a, b] = p ? hoursOf(p) : [s.start, s.end];
+        return (
+          <Modal open={!!p} onClose={() => setEditing(null)} title={p ? `Working hours in ${p.name}` : 'Working hours'}
+            footer={<>
+              {p && hasOwnHours(p) && <button type="button" class="btn btn-quiet" onClick={() => setOwnHours(i!, null, null)}>Use the default ({fmtTime(s.start, 0, h12, true)}–{fmtTime(s.end, 0, h12, true)})</button>}
+              <button type="button" class="btn btn-primary" onClick={() => setEditing(null)}>Done</button>
+            </>}>
+            {p && (
+              <div class="stack">
+                <p class="muted" style="margin:0">Useful when someone keeps different hours, for example a client who starts at 8am, or you working late to overlap with them.</p>
+                <div class="hours-pair">
+                  <div class="control"><select aria-label={`Working day starts in ${p.name}`} value={a} onChange={(e) => setOwnHours(i!, Number((e.target as HTMLSelectElement).value), b)}>{hourOptions}</select></div>
+                  <span class="faint">to</span>
+                  <div class="control"><select aria-label={`Working day ends in ${p.name}`} value={b} onChange={(e) => setOwnHours(i!, a, Number((e.target as HTMLSelectElement).value))}>{hourOptions}</select></div>
+                </div>
+              </div>
+            )}
+          </Modal>
+        );
+      })()}
       {toast}
     </div>
   );
 }
+
+function isHour(n: number) { return Number.isInteger(n) && n >= 0 && n <= 23; }
 
 function isZone(z: string) {
   try { new Intl.DateTimeFormat('en', { timeZone: z }); return true; } catch { return false; }

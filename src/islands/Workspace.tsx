@@ -6,8 +6,10 @@ import { listDocs, saveDoc, deleteDoc, duplicate, totals, displayStatus, statusL
 import { getProfile, saveProfile, resizeLogo, type Profile } from '../lib/profile';
 import { loadEntries, duration, entryAmount } from '../lib/time';
 import { subscribe } from '../lib/storage';
-import { exportBackup, importBackup, deleteEverything } from '../lib/backup';
-import { money, fmtDate, todayISO, addDays, hm, toNum } from '../lib/format';
+import { exportBackup, importBackup, deleteEverything, lastBackup } from '../lib/backup';
+import { money, fmtDate, todayISO, addDays, hm, toNum, toISO } from '../lib/format';
+import { downloadFile } from '../lib/ics';
+import { toCSVText } from '../lib/csv';
 import { currencies } from '../data/currencies';
 
 type Tab = 'documents' | 'clients' | 'profile' | 'data';
@@ -29,17 +31,20 @@ export default function Workspace() {
   const [confirm, setConfirm] = useState<Doc | 'all' | null>(null);
   const [toast, showToast] = useToast();
   const [installEvt, setInstallEvt] = useState<Event & { prompt?: () => void } | null>(null);
+  const [backedUp, setBackedUp] = useState(0);
 
   const refresh = () => setDocs(listDocs());
   useEffect(() => {
     refresh();
+    setBackedUp(lastBackup());
     setReady(true);
     const h = location.hash.replace('#', '') as Tab;
     if (['documents', 'clients', 'profile', 'data'].includes(h)) setTab(h);
     const un = subscribe('documents', refresh);
+    const unB = subscribe('last-backup', () => setBackedUp(lastBackup()));
     const onInstall = (e: Event) => { e.preventDefault(); setInstallEvt(e as Event & { prompt?: () => void }); };
     window.addEventListener('beforeinstallprompt', onInstall);
-    return () => { un(); window.removeEventListener('beforeinstallprompt', onInstall); };
+    return () => { un(); unB(); window.removeEventListener('beforeinstallprompt', onInstall); };
   }, []);
 
   const go = (t: Tab) => { setTab(t); history.replaceState(null, '', `#${t}`); };
@@ -51,6 +56,10 @@ export default function Workspace() {
   const overdue = outstanding.filter((d) => displayStatus(d, today) === 'overdue');
   const paidRecent = invoices.filter((d) => d.status === 'paid' && d.paidDate && d.paidDate >= addDays(today, -30));
   const unbilled = entries.filter((e) => !e.billed);
+  // Everything lives in this browser only, so nudge people to keep a copy.
+  const backupAge = backedUp ? Math.floor((Date.now() - backedUp) / 86400000) : -1;
+  const backupDue = ready && docs.length >= 3 && (backupAge < 0 || backupAge >= 30);
+  const backupText = backupAge < 0 ? 'No backup yet' : backupAge === 0 ? 'Last backup: today' : `Last backup: ${fmtDate(toISO(new Date(backedUp)))} (${backupAge} day${backupAge === 1 ? '' : 's'} ago)`;
 
   const filtered = docs.filter((d) => {
     if (kind !== 'all' && d.type !== kind) return false;
@@ -73,6 +82,19 @@ export default function Workspace() {
     }
     return [...map.values()].sort((a, b) => Math.max(...b.docs.map((x) => x.updatedAt)) - Math.max(...a.docs.map((x) => x.updatedAt)));
   }, [docs]);
+
+  function exportCSV() {
+    const rows: (string | number)[][] = [['Type', 'Number', 'Client', 'Project', 'Issue date', 'Due / valid until', 'Status', 'Currency', 'Subtotal', 'Discount', 'Tax', 'Total', 'Paid', 'Balance', 'Paid on']];
+    const n = (v: number) => v.toFixed(2);
+    for (const d of filtered) {
+      const t = totals(d);
+      const isInv = d.type === 'invoice';
+      const paid = d.status === 'paid' ? t.total : t.paid;
+      rows.push([isInv ? 'Invoice' : 'Quote', d.number, d.client.name, d.project, d.issueDate, d.dueDate, statusLabel[displayStatus(d, today)], d.currency,
+        n(t.subtotal), n(t.discount), n(t.tax), n(t.total), isInv ? n(paid) : '', isInv ? n(t.total - paid) : '', d.paidDate]);
+    }
+    downloadFile(`solokit-documents-${today}.csv`, toCSVText(rows), 'text/csv;charset=utf-8');
+  }
 
   const edit = (d: Doc) => `${base()}tools/${d.type === 'invoice' ? 'invoice-generator' : 'project-quote-generator'}/?doc=${d.id}`;
 
@@ -106,11 +128,19 @@ export default function Workspace() {
   return (
     <div class="workspace">
       <div class="figures ws-figures">
-        <div><span>Waiting to be paid</span><b>{sumByCurrency(outstanding.map((d) => ({ amount: totals(d).total, currency: d.currency })))}</b><em>{outstanding.length} invoice{outstanding.length === 1 ? '' : 's'} sent</em></div>
-        <div class={overdue.length ? 'warn' : ''}><span>Overdue</span><b>{sumByCurrency(overdue.map((d) => ({ amount: totals(d).total, currency: d.currency })))}</b><em>{overdue.length ? <a href={`${base()}tools/late-payment-email-generator/?doc=${overdue[0].id}`}>Send a reminder</a> : 'Nothing overdue'}</em></div>
+        <div><span>Waiting to be paid</span><b>{sumByCurrency(outstanding.map((d) => ({ amount: totals(d).balance, currency: d.currency })))}</b><em>{outstanding.length} invoice{outstanding.length === 1 ? '' : 's'} sent</em></div>
+        <div class={overdue.length ? 'warn' : ''}><span>Overdue</span><b>{sumByCurrency(overdue.map((d) => ({ amount: totals(d).balance, currency: d.currency })))}</b><em>{overdue.length ? <a href={`${base()}tools/late-payment-email-generator/?doc=${overdue[0].id}`}>Send a reminder</a> : 'Nothing overdue'}</em></div>
         <div><span>Paid in the last 30 days</span><b>{sumByCurrency(paidRecent.map((d) => ({ amount: totals(d).total, currency: d.currency })))}</b><em>{paidRecent.length} invoice{paidRecent.length === 1 ? '' : 's'}</em></div>
         <div><span>Time not invoiced</span><b>{hm(unbilled.reduce((s, e) => s + duration(e), 0))}</b><em>{unbilled.length ? <a href={`${base()}tools/time-tracker/`}>{money(unbilled.reduce((s, e) => s + entryAmount(e), 0), getProfile().currency)} ready to bill</a> : 'All billed'}</em></div>
       </div>
+
+      {backupDue && (
+        <div class="backup-nudge" role="note">
+          <Icon name="shield" size={18} />
+          <p><b>Keep a copy of your work.</b> Your invoices are saved only in this browser{backupAge < 0 ? ', and you haven\'t downloaded a backup yet.' : `, and your last backup was ${backupAge} days ago.`}</p>
+          <button type="button" class="btn btn-secondary btn-sm" onClick={exportBackup}><Icon name="download" size={16} />Download backup</button>
+        </div>
+      )}
 
       <div class="ws-tabs" role="tablist" aria-label="Workspace sections">
         {([['documents', 'Documents'], ['clients', 'Clients'], ['profile', 'Business details'], ['data', 'Backup and data']] as [Tab, string][]).map(([t, l]) => (
@@ -128,6 +158,7 @@ export default function Workspace() {
             </select></div>
             <div class="control ws-search"><Icon name="search" size={15} class="faint" /><input aria-label="Search" placeholder="Search by client, number or project" value={q} onInput={(e) => setQ((e.target as HTMLInputElement).value)} /></div>
             <div class="ws-new">
+              {docs.length > 0 && <button type="button" class="btn btn-quiet btn-sm" onClick={exportCSV} title="For your accountant or a spreadsheet"><Icon name="download" size={16} />CSV</button>}
               <a class="btn btn-primary btn-sm" href={`${base()}tools/invoice-generator/?new=1`}><Icon name="plus" size={16} />Invoice</a>
               <a class="btn btn-secondary btn-sm" href={`${base()}tools/project-quote-generator/?new=1`}><Icon name="plus" size={16} />Quote</a>
             </div>
@@ -143,17 +174,18 @@ export default function Workspace() {
           ) : (
             <div class="table-wrap">
               <table class="ws-table">
-                <thead><tr><th>Number</th><th>Client</th><th>Issued</th><th>Due / valid</th><th class="n">Amount</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                <thead><tr><th scope="col">Number</th><th scope="col">Client</th><th scope="col">Issued</th><th scope="col">Due / valid</th><th scope="col" class="n">Amount</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
                 <tbody>
                   {filtered.map((d) => {
                     const st = displayStatus(d, today);
+                    const t = totals(d);
                     return (
                       <tr>
                         <td><a href={edit(d)} class="doc-link"><Icon name={d.type === 'invoice' ? 'invoice' : 'quote'} size={16} />{d.number || 'No number'}</a></td>
                         <td>{d.client.name || <span class="faint">No client</span>}{d.project && <span class="tiny faint" style="display:block">{d.project}</span>}</td>
                         <td>{fmtDate(d.issueDate)}</td>
                         <td>{fmtDate(d.dueDate)}</td>
-                        <td class="n"><strong>{money(totals(d).total, d.currency)}</strong></td>
+                        <td class="n"><strong>{money(t.total, d.currency)}</strong>{d.type === 'invoice' && d.status !== 'paid' && t.paid > 0 && <span class="tiny faint" style="display:block">{money(t.balance, d.currency)} still due</span>}</td>
                         <td><span class={`pill ${st}`}>{statusLabel[st]}</span></td>
                         <td class="row-actions">
                           {d.type === 'invoice' && d.status === 'sent' && <button type="button" class="btn btn-secondary btn-sm" onClick={() => markPaid(d)}>Mark paid</button>}
@@ -178,7 +210,7 @@ export default function Workspace() {
           ) : (
             <div class="table-wrap">
               <table class="ws-table">
-                <thead><tr><th>Client</th><th>Documents</th><th class="n">Invoiced</th><th class="n">Paid</th><th class="n">Waiting</th><th>Last activity</th></tr></thead>
+                <thead><tr><th scope="col">Client</th><th scope="col">Documents</th><th scope="col" class="n">Invoiced</th><th scope="col" class="n">Paid</th><th scope="col" class="n">Waiting</th><th scope="col">Last activity</th></tr></thead>
                 <tbody>
                   {clients.map((c) => {
                     const inv = c.docs.filter((d) => d.type === 'invoice');
@@ -189,8 +221,8 @@ export default function Workspace() {
                         <td>{inv.length} invoice{inv.length === 1 ? '' : 's'}, {c.docs.length - inv.length} quote{c.docs.length - inv.length === 1 ? '' : 's'}</td>
                         <td class="n">{amt(inv)}</td>
                         <td class="n">{amt(inv.filter((d) => d.status === 'paid'))}</td>
-                        <td class="n">{amt(inv.filter((d) => d.status === 'sent'))}</td>
-                        <td>{new Date(Math.max(...c.docs.map((d) => d.updatedAt))).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                        <td class="n">{sumByCurrency(inv.filter((d) => d.status === 'sent').map((d) => ({ amount: totals(d).balance, currency: d.currency })))}</td>
+                        <td>{fmtDate(toISO(new Date(Math.max(...c.docs.map((d) => d.updatedAt)))))}</td>
                       </tr>
                     );
                   })}
@@ -206,21 +238,21 @@ export default function Workspace() {
       {tab === 'data' && (
         <section class="panel data-panel" role="tabpanel">
           <div class="data-row">
-            <div><h3>Download a backup</h3><p class="muted small">A single file with your documents, clients, time entries and settings. Keep it somewhere safe, or use it to move to another device.</p></div>
+            <div><h2 class="h3">Download a backup</h2><p class="muted small">A single file with your documents, clients, time entries and settings. Keep it somewhere safe, or use it to move to another device.</p><p class="tiny faint">{backupText}</p></div>
             <button type="button" class="btn btn-primary" onClick={exportBackup}><Icon name="download" />Download backup</button>
           </div>
           <div class="data-row">
-            <div><h3>Restore a backup</h3><p class="muted small">Adds the backup to this browser. Items with the same name are replaced.</p></div>
+            <div><h2 class="h3">Restore a backup</h2><p class="muted small">Adds the backup's invoices, quotes and time entries to this browser. Anything that's only on this device stays. Your settings are replaced by the backup's.</p></div>
             <label class="btn btn-secondary"><input type="file" accept="application/json,.json" class="sr-only" onChange={onImport} /><Icon name="upload" />Choose backup file</label>
           </div>
           {installEvt && (
             <div class="data-row">
-              <div><h3>Install SoloKit</h3><p class="muted small">Open it like an app, even without internet.</p></div>
+              <div><h2 class="h3">Install SoloKit</h2><p class="muted small">Open it like an app, even without internet.</p></div>
               <button type="button" class="btn btn-secondary" onClick={() => { installEvt.prompt?.(); setInstallEvt(null); }}><Icon name="offline" />Install</button>
             </div>
           )}
           <div class="data-row danger-zone">
-            <div><h3>Delete everything</h3><p class="muted small">Removes all SoloKit data from this browser. Download a backup first if you might need it.</p></div>
+            <div><h2 class="h3">Delete everything</h2><p class="muted small">Removes all SoloKit data from this browser. Download a backup first if you might need it.</p></div>
             <button type="button" class="btn btn-danger" onClick={() => setConfirm('all')}><Icon name="trash" />Delete all data</button>
           </div>
           <p class="tiny faint">Your data is stored only in this browser (local storage). Clearing your browser's site data also removes it.</p>
@@ -252,11 +284,12 @@ function ProfileForm({ onSaved }: { onSaved: () => void }) {
     try { setErr(''); setP({ ...p, logo: await resizeLogo(f) }); } catch (x) { setErr((x as Error).message); }
   }
   return (
-    <form class="panel profile-form" role="tabpanel" onSubmit={(e) => { e.preventDefault(); saveProfile(p); onSaved(); }}>
+    <div role="tabpanel">
+    <form class="panel profile-form" onSubmit={(e) => { e.preventDefault(); saveProfile(p); onSaved(); }}>
       <p class="muted small" style="margin-bottom:16px">Filled in automatically on new invoices, quotes and reminder emails. Documents you've already made keep their own copy.</p>
       <div class="profile-grid">
         <div class="stack">
-          <h3>You</h3>
+          <h2 class="h3">You</h2>
           <div class="grid-2">
             <Field label="Business name">{(id) => <Input id={id} value={p.businessName} onInput={set('businessName')} placeholder="Morgan Studio" />}</Field>
             <Field label="Your name">{(id) => <Input id={id} value={p.yourName} onInput={set('yourName')} placeholder="Alex Morgan" />}</Field>
@@ -280,7 +313,7 @@ function ProfileForm({ onSaved }: { onSaved: () => void }) {
           </div>
         </div>
         <div class="stack">
-          <h3>Defaults</h3>
+          <h2 class="h3">Defaults</h2>
           <div class="grid-2">
             <Field label="Currency">{(id) => <Select id={id} value={p.currency} onChange={set('currency')} options={currencies.map(([c, n]) => [c, `${c}, ${n}`])} />}</Field>
             <Field label="Hourly rate">{(id) => <Input id={id} type="number" inputMode="decimal" min="0" value={p.defaultRate || ''} onInput={set('defaultRate', true)} suffix={p.currency} />}</Field>
@@ -296,6 +329,7 @@ function ProfileForm({ onSaved }: { onSaved: () => void }) {
             )}</Field>
           </div>
           <Field label="How clients pay you">{(id) => <TextArea id={id} rows={3} value={p.paymentDetails} onInput={set('paymentDetails')} placeholder="Bank, Wise, Payoneer or PayPal details" />}</Field>
+          <Field label="Online payment link (optional)" hint="A PayPal.me, Stripe, Wise or Payoneer link. New invoices show it with a QR code.">{(id) => <Input id={id} type="url" inputMode="url" value={p.paymentLink} onInput={set('paymentLink')} placeholder="paypal.me/alexmorgan" />}</Field>
           <div class="grid-2">
             <Field label="Invoice numbers">{(id) => <Input id={id} value={p.invoicePrefix} onInput={set('invoicePrefix')} suffix={`next: ${p.invoicePrefix}${String(p.nextInvoice).padStart(3, '0')}`} />}</Field>
             <Field label="Next invoice number">{(id) => <Input id={id} type="number" min="1" value={p.nextInvoice} onInput={set('nextInvoice', true)} />}</Field>
@@ -312,5 +346,6 @@ function ProfileForm({ onSaved }: { onSaved: () => void }) {
       </div>
       <div class="profile-foot"><button type="submit" class="btn btn-primary"><Icon name="save" />Save details</button></div>
     </form>
+    </div>
   );
 }

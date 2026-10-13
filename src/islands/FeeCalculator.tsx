@@ -36,9 +36,9 @@ export default function FeeCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const amount = toNum(s.amount);
+  const amount = Math.max(0, toNum(s.amount));
   const platform = platforms.find((p) => p.id === s.platform) ?? platforms[0];
-  const platformPct = s.platform === 'none' ? 0 : Math.min(99, Math.max(0, toNum(s.platformPct)));
+  const platformPct = s.platform === 'none' ? 0 : Math.min(95, Math.max(0, toNum(s.platformPct)));
   const convert = s.convert && s.local !== s.currency;
 
   // Live mid-market rate for showing amounts in your local currency.
@@ -87,12 +87,16 @@ export default function FeeCalculator() {
   const best = rows[0];
 
   const set = <K extends keyof State>(k: K, v: State[K]) => setS({ ...s, [k]: v });
-  const setOverride = (id: string, k: keyof Override, v: string) => setOver({ ...over, [id]: { ...(over[id] || {}), [k]: toNum(v) } });
+  // Percentages stay between 0 and 95 so the maths never divides by zero.
+  const setOverride = (id: string, k: keyof Override, v: string) => {
+    const n = Math.max(0, toNum(v));
+    setOver({ ...over, [id]: { ...(over[id] || {}), [k]: k === 'pct' || k === 'convPct' ? Math.min(95, n) : n } });
+  };
   const resetOverride = (id: string) => { const next = { ...over }; delete next[id]; setOver(next); };
 
   return (
     <div class="split fees">
-      <form class="panel" onSubmit={(e) => e.preventDefault()} noValidate>
+      <section class="panel" aria-label="Your numbers">
         <div class="stack">
           <Seg label="What do you want to know?" value={s.mode} options={[['receive', 'What will I receive?'], ['charge', 'What should I charge?']]} onChange={(v) => set('mode', v)} />
           <div class="grid-2">
@@ -141,7 +145,7 @@ export default function FeeCalculator() {
             ))}
           </fieldset>
         </div>
-      </form>
+      </section>
 
       <div class="sticky">
         <div class="result">

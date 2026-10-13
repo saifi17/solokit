@@ -76,13 +76,20 @@ export function addDays(iso: string, days: number): string {
 export function daysBetween(a: string, b: string): number {
   return Math.round((fromISO(b).getTime() - fromISO(a).getTime()) / 86400000);
 }
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/** "13 Oct 2026" (same in every browser and country). */
 export function fmtDate(iso: string | undefined | null): string {
   if (!iso) return '';
-  return fromISO(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const d = fromISO(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
 }
+/** "13 October 2026" */
 export function fmtDateLong(iso: string | undefined | null): string {
   if (!iso) return '';
-  return fromISO(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const d = fromISO(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 // ---- Durations ----

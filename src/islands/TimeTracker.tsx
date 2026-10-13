@@ -94,7 +94,7 @@ export default function TimeTracker() {
   }
   function exportCSV() {
     const list = view === 'week' ? entries.filter((e) => e.start >= weekStart()) : entries;
-    downloadFile(`timesheet-${todayISO()}.csv`, toCSV(list, currency), 'text/csv');
+    downloadFile(`timesheet-${todayISO()}.csv`, toCSV(list, currency), 'text/csv;charset=utf-8');
   }
 
   const ws = weekStart();
@@ -166,7 +166,7 @@ export default function TimeTracker() {
               Object.entries(days).map(([day, list]) => (
                 <div class="day">
                   <div class="day-head">
-                    <b>{fromISO(day).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</b>
+                    <b>{fromISO(day).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }).replace('Sept', 'Sep')}</b>
                     <span>{hm(list.reduce((s, e) => s + duration(e), 0))}</span>
                   </div>
                   {list.map((e) => (
@@ -189,7 +189,7 @@ export default function TimeTracker() {
           </div>
         </div>
 
-        <aside class="panel bill-panel">
+        <section class="panel bill-panel" aria-label="Ready to invoice">
           <h2>Ready to invoice</h2>
           <p class="panel-sub">Unbilled time, by client.</p>
           {byClient.length === 0 ? (
@@ -212,7 +212,7 @@ export default function TimeTracker() {
             </ul>
           )}
           <p class="tiny faint" style="margin-top:14px">Creates a draft invoice with one line per entry. You can edit it before sending.</p>
-        </aside>
+        </section>
       </div>
 
       <Modal open={!!edit} onClose={() => setEdit(null)} title={edit?.id ? 'Edit time entry' : 'Add time manually'}

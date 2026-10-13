@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { currencies } from '../data/currencies';
 import { money, num, toNum, parseNum } from '../lib/format';
-import { getProfile, updateProfile } from '../lib/profile';
+import { updateProfile } from '../lib/profile';
 import { Field, Input, Select, Icon, useStored, useToast, copyText, base } from './ui';
 
 type State = {
@@ -77,9 +77,9 @@ export default function RateCalculator({ compact = false }: { compact?: boolean 
   };
   const share = r ? [
     { label: 'Take-home pay', value: r.income, color: 'var(--accent)' },
-    { label: 'Income tax', value: r.taxAmount, color: '#E0A33A' },
-    { label: 'Business costs', value: r.costs, color: '#3FA37C' },
-    { label: 'Safety margin', value: r.marginAmount, color: '#9AA3BC' },
+    { label: 'Income tax', value: r.taxAmount, color: '#D99A2B' },
+    { label: 'Business costs', value: r.costs, color: '#5B7DB1' },
+    { label: 'Safety margin', value: r.marginAmount, color: '#A7AEB4' },
   ] : [];
 
   async function copySummary() {
@@ -151,7 +151,7 @@ export default function RateCalculator({ compact = false }: { compact?: boolean 
 
   return (
     <div class={compact ? 'rate compact' : 'split rate'}>
-      <form class="panel" onSubmit={(e) => e.preventDefault()} noValidate>
+      <section class="panel" aria-label="Your numbers">
         <div class="panel-head"><div><h2>Your goal</h2><p class="panel-sub">What you want to earn in a year.</p></div></div>
         <div class="stack">
           {!compact && (
@@ -213,7 +213,7 @@ export default function RateCalculator({ compact = false }: { compact?: boolean 
             </Field>
           )}
         </div>
-      </form>
+      </section>
       <div class={compact ? '' : 'sticky'}>{result}</div>
       {toast}
     </div>

@@ -1,5 +1,5 @@
 // Small shared building blocks for the interactive tools (Preact).
-import type { ComponentChildren, JSX } from 'preact';
+import type { ComponentChildren, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes } from 'preact';
 import { useEffect, useRef, useState, useCallback, useId as usePreactId } from 'preact/hooks';
 import { icons } from '../data/icons';
 import { load, save, subscribe } from '../lib/storage';
@@ -35,7 +35,7 @@ export function Field({ label, hint, children, class: cls = '' }: FieldProps) {
   );
 }
 
-type InputProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { prefix?: string; suffix?: string; invalid?: boolean };
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { prefix?: string; suffix?: string; invalid?: boolean };
 /** Text/number input in the standard control box, with optional prefix/suffix. */
 export function Input({ prefix, suffix, invalid, ...rest }: InputProps) {
   return (
@@ -47,11 +47,11 @@ export function Input({ prefix, suffix, invalid, ...rest }: InputProps) {
   );
 }
 
-export function TextArea(props: JSX.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <div class="control"><textarea {...props} /></div>;
 }
 
-export function Select({ options, ...rest }: JSX.SelectHTMLAttributes<HTMLSelectElement> & { options: [string, string][] }) {
+export function Select({ options, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { options: [string, string][] }) {
   return (
     <div class="control">
       <select {...rest}>

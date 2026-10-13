@@ -4,6 +4,7 @@
 import type { Doc } from '../lib/documents';
 import { totals, lineAmount } from '../lib/documents';
 import { money, fmtDate, num } from '../lib/format';
+import { qrSvg, normaliseLink } from '../lib/qr';
 
 const unitLabel: Record<string, string> = { hrs: 'hrs', days: 'days', items: '', '': '' };
 
@@ -24,7 +25,13 @@ export default function DocPreview({ doc, stampKey = 0 }: { doc: Doc; stampKey?:
   const hasTax = (doc.taxRate || 0) > 0;
   const fromName = f.businessName || f.yourName;
   const showStamp = (!isQuote && doc.status === 'paid') || (isQuote && doc.status === 'accepted');
-  const amountDue = isQuote ? t.total : t.total;
+  const paidInFull = !isQuote && doc.status === 'paid';
+  const amountDue = isQuote || paidInFull ? t.total : t.balance;
+  const dueLabel = isQuote ? 'Total' : paidInFull ? 'Amount paid' : t.paid > 0 ? 'Balance due' : 'Amount due';
+  // A paid invoice works as a receipt, so it doesn't ask for payment again.
+  const link = paidInFull ? '' : normaliseLink(doc.paymentLink || '');
+  const qr = link && doc.showQR ? qrSvg(link) : '';
+  const hasPayment = !paidInFull && !!(doc.paymentDetails || link);
 
   return (
     <article class={`doc tpl-${doc.template} paper-${doc.paper}`} style={{ '--doc-accent': doc.accent } as Record<string, string>} aria-label={`${title} preview`}>
@@ -63,7 +70,7 @@ export default function DocPreview({ doc, stampKey = 0 }: { doc: Doc; stampKey?:
           <div><dt>{isQuote ? 'Valid until' : 'Due date'}</dt><dd>{fmtDate(doc.dueDate)}</dd></div>
           {isQuote && doc.timeline && <div><dt>Timeline</dt><dd>{doc.timeline}</dd></div>}
           {!isQuote && doc.sourceQuote && <div><dt>Quote</dt><dd>{doc.sourceQuote}</dd></div>}
-          <div class="doc-due"><dt>{isQuote ? 'Total' : 'Amount due'}</dt><dd>{m(amountDue)}</dd></div>
+          <div class="doc-due"><dt>{dueLabel}</dt><dd>{m(amountDue)}</dd></div>
         </dl>
       </section>
 
@@ -98,7 +105,13 @@ export default function DocPreview({ doc, stampKey = 0 }: { doc: Doc; stampKey?:
           {(hasDiscount || hasTax) && <div><dt>Subtotal</dt><dd>{m(t.subtotal)}</dd></div>}
           {hasDiscount && <div><dt>Discount{doc.discountType === 'percent' ? ` (${num(doc.discountValue, doc.discountValue % 1 ? 1 : 0)}%)` : ''}</dt><dd>−{m(t.discount)}</dd></div>}
           {hasTax && <div><dt>{doc.taxLabel || 'Tax'} ({num(doc.taxRate, doc.taxRate % 1 ? 1 : 0)}%)</dt><dd>{m(t.tax)}</dd></div>}
-          <div class="doc-total"><dt>{isQuote ? 'Total' : 'Amount due'}</dt><dd>{m(t.total)}</dd></div>
+          {!isQuote && t.paid > 0 && (
+            <>
+              <div><dt>Total</dt><dd>{m(t.total)}</dd></div>
+              <div><dt>{paidInFull && doc.paidDate ? `Paid on ${fmtDate(doc.paidDate)}` : 'Paid'}</dt><dd>−{m(t.paid)}</dd></div>
+            </>
+          )}
+          <div class="doc-total"><dt>{isQuote ? 'Total' : t.paid > 0 ? 'Balance due' : 'Amount due'}</dt><dd>{m(isQuote ? t.total : t.balance)}</dd></div>
           {isQuote && doc.deposit > 0 && doc.deposit < 100 && (
             <div class="doc-deposit"><dt>Deposit to start ({num(doc.deposit)}%)</dt><dd>{m(t.deposit)}</dd></div>
           )}
@@ -107,16 +120,20 @@ export default function DocPreview({ doc, stampKey = 0 }: { doc: Doc; stampKey?:
       </div>
 
       <section class="doc-notes">
-        {!isQuote && doc.paymentDetails && (
-          <div><h2>How to pay</h2><Lines text={doc.paymentDetails} /></div>
+        {hasPayment && (
+          <div class={`doc-pay ${qr ? 'has-qr' : ''}`}>
+            <div>
+              <h2>{isQuote ? 'Payment details' : 'How to pay'}</h2>
+              {doc.paymentDetails && <Lines text={doc.paymentDetails} />}
+              {link && <span class="ln doc-paylink">Pay online: <a href={link}>{link.replace(/^https?:\/\//, '')}</a></span>}
+            </div>
+            {qr && <div class="doc-qr" role="img" aria-label="QR code for the payment link" dangerouslySetInnerHTML={{ __html: qr }} />}
+          </div>
         )}
         {isQuote && doc.quoteTerms && (
           <div><h2>Scope & terms</h2><Lines text={doc.quoteTerms} /></div>
         )}
         {doc.notes && <div><h2>Notes</h2><Lines text={doc.notes} /></div>}
-        {isQuote && doc.paymentDetails && (
-          <div><h2>Payment details</h2><Lines text={doc.paymentDetails} /></div>
-        )}
       </section>
 
       {isQuote && (

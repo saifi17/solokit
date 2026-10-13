@@ -2,39 +2,49 @@
    SoloKit design system
    - Type: Archivo. Headlines use its expanded width (like stamped
      letterheads); everything else uses the normal width.
-   - Colour: neutral surfaces, one "signature ink" blue for actions,
-     plus status colours (paid, due, overdue) that carry meaning.
+   - Colour: neutral surfaces, one deep evergreen for actions, plus
+     status colours (paid, due, overdue) that carry meaning.
    - Layout: every tool sits on a tinted "workbench" band, with the
      reading content (how-to, FAQ) on white below it.
    ===================================================================== */
 
+/* Colour notes: neutral surfaces with a faint green-grey cast, deep
+   "evergreen" for actions and highlights, and status colours that carry
+   meaning (paid, sent, due soon, overdue). Contrast is at least 4.5:1 for
+   text on every surface. */
 :root {
   --bg: #FFFFFF;            /* page */
-  --bench: #F3F4F7;         /* workbench band behind tools */
+  --bench: #F3F5F4;         /* workbench band behind tools */
   --surface: #FFFFFF;       /* panels, inputs */
-  --surface-2: #F7F8FA;     /* subtle fills inside panels */
-  --ink: #161A2C;           /* main text */
-  --ink-2: #4B5168;         /* secondary text */
-  --ink-3: #80869C;         /* hints, placeholders */
-  --line: #E2E4EC;          /* borders */
-  --line-2: #CDD1DD;        /* stronger borders */
+  --surface-2: #F6F8F7;     /* subtle fills inside panels */
+  --ink: #14191F;           /* main text */
+  --ink-2: #4A5260;         /* secondary text */
+  --ink-3: #626A72;         /* hints, placeholders */
+  --line: #E1E5E3;          /* borders */
+  --line-2: #CBD1CE;        /* stronger borders */
 
-  --accent: #2D44D8;        /* signature ink: buttons, links, focus */
-  --accent-hover: #2236BA;
-  --accent-soft: #ECEEFD;
-  --accent-ink: #1F2FA0;    /* text on accent-soft */
+  --accent: #0F6B58;        /* evergreen: links, focus, highlights */
+  --accent-hover: #0B5A49;
+  --accent-soft: #E5F2EE;
+  --accent-ink: #0B5446;    /* text on accent-soft */
   --on-accent: #FFFFFF;
+  --btn: #0F6B58;           /* primary buttons */
+  --btn-hover: #0B5A49;
+  --on-btn: #FFFFFF;
 
-  --ok: #11845B;            /* paid, accepted */
-  --ok-soft: #E3F4EC;
-  --warn: #A86400;          /* due soon, running timer */
+  --ok: #157A4D;            /* paid, accepted */
+  --ok-soft: #E3F3EA;
+  --info: #3A5596;          /* sent, waiting */
+  --info-soft: #E9EEF8;
+  --warn: #9A5B00;          /* due soon, running timer */
   --warn-soft: #FBF0DC;
-  --bad: #C8372D;           /* overdue, errors, the PAID stamp */
+  --bad: #C2372D;           /* overdue, errors, the PAID stamp */
   --bad-soft: #FBE7E5;
+  --night: #EBEEED;         /* night hours in the meeting planner */
 
-  --shadow-sm: 0 1px 2px rgba(22, 26, 44, 0.06);
-  --shadow-md: 0 1px 2px rgba(22, 26, 44, 0.05), 0 8px 24px -8px rgba(22, 26, 44, 0.14);
-  --shadow-lg: 0 2px 6px rgba(22, 26, 44, 0.06), 0 24px 48px -20px rgba(22, 26, 44, 0.28);
+  --shadow-sm: 0 1px 2px rgba(20, 25, 31, 0.06);
+  --shadow-md: 0 1px 2px rgba(20, 25, 31, 0.05), 0 8px 24px -8px rgba(20, 25, 31, 0.14);
+  --shadow-lg: 0 2px 6px rgba(20, 25, 31, 0.06), 0 24px 48px -20px rgba(20, 25, 31, 0.26);
 
   --font: 'Archivo Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-serif: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;
@@ -52,20 +62,22 @@
    white, like real paper. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0F1220; --bench: #151929; --surface: #1A1F33; --surface-2: #20263C;
-    --ink: #ECEEF6; --ink-2: #AEB4C9; --ink-3: #7C829A; --line: #2A3048; --line-2: #3A4160;
-    --accent: #8C9BFF; --accent-hover: #A7B2FF; --accent-soft: #232A52; --accent-ink: #C5CCFF; --on-accent: #0F1220;
-    --ok: #4CCB95; --ok-soft: #133528; --warn: #F0B357; --warn-soft: #3A2B12; --bad: #FF7A6E; --bad-soft: #3D1A18;
+    --bg: #0E1214; --bench: #141A1C; --surface: #192124; --surface-2: #1F282B;
+    --ink: #EBF0EE; --ink-2: #AAB5B1; --ink-3: #8A9692; --line: #273235; --line-2: #374448;
+    --accent: #5BCBA8; --accent-hover: #7DD9BC; --accent-soft: #143A31; --accent-ink: #A8EBD5; --on-accent: #08130F;
+    --btn: #5BCBA8; --btn-hover: #7DD9BC; --on-btn: #08130F;
+    --night: #121819; --ok: #57CF95; --ok-soft: #12352A; --info: #9DB4F0; --info-soft: #1E2944; --warn: #F0B357; --warn-soft: #3A2B12; --bad: #FF7A6E; --bad-soft: #3D1A18;
     --shadow-md: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
     --shadow-lg: 0 2px 6px rgba(0,0,0,.3), 0 24px 48px -20px rgba(0,0,0,.6);
     color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #0F1220; --bench: #151929; --surface: #1A1F33; --surface-2: #20263C;
-  --ink: #ECEEF6; --ink-2: #AEB4C9; --ink-3: #7C829A; --line: #2A3048; --line-2: #3A4160;
-  --accent: #8C9BFF; --accent-hover: #A7B2FF; --accent-soft: #232A52; --accent-ink: #C5CCFF; --on-accent: #0F1220;
-  --ok: #4CCB95; --ok-soft: #133528; --warn: #F0B357; --warn-soft: #3A2B12; --bad: #FF7A6E; --bad-soft: #3D1A18;
+  --bg: #0E1214; --bench: #141A1C; --surface: #192124; --surface-2: #1F282B;
+  --ink: #EBF0EE; --ink-2: #AAB5B1; --ink-3: #8A9692; --line: #273235; --line-2: #374448;
+  --accent: #5BCBA8; --accent-hover: #7DD9BC; --accent-soft: #143A31; --accent-ink: #A8EBD5; --on-accent: #08130F;
+  --btn: #5BCBA8; --btn-hover: #7DD9BC; --on-btn: #08130F;
+  --night: #121819; --ok: #57CF95; --ok-soft: #12352A; --info: #9DB4F0; --info-soft: #1E2944; --warn: #F0B357; --warn-soft: #3A2B12; --bad: #FF7A6E; --bad-soft: #3D1A18;
   --shadow-md: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
   --shadow-lg: 0 2px 6px rgba(0,0,0,.3), 0 24px 48px -20px rgba(0,0,0,.6);
   color-scheme: dark;
@@ -74,6 +86,7 @@
 /* ---------- Reset & base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
+astro-island, astro-slot, astro-static-slot { display: contents; } /* Astro's island wrappers (see astro.config.mjs) */
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -101,7 +114,7 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.12; color: var(--ink); font-weight: 7
 .display, h1 { font-stretch: var(--display-stretch); letter-spacing: -0.02em; }
 h1 { font-size: clamp(34px, 5.2vw, 60px); font-weight: 760; }
 h2 { font-size: clamp(24px, 2.7vw, 32px); font-stretch: 108%; letter-spacing: -0.015em; }
-h3 { font-size: 18px; letter-spacing: -0.005em; }
+h3, .h3 { font-size: 18px; letter-spacing: -0.005em; }
 p { margin: 0; }
 
 .wrap { width: min(100% - 32px, var(--wrap)); margin-inline: auto; }
@@ -160,7 +173,7 @@ p { margin: 0; }
 /* ---------- Footer ---------- */
 .site-foot { border-top: 1px solid var(--line); padding: 48px 0 28px; margin-top: 96px; font-size: 15px; color: var(--ink-2); background: var(--bg); }
 .foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 0.8fr; gap: 32px; }
-.foot-grid h3 { font-size: 14px; font-weight: 650; color: var(--ink); margin-bottom: 12px; font-stretch: 100%; }
+.foot-grid h2 { font-size: 14px; font-weight: 650; color: var(--ink); margin-bottom: 12px; font-stretch: 100%; letter-spacing: 0; line-height: 1.4; }
 .foot-grid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .foot-grid a { color: var(--ink-2); text-decoration: none; }
 .foot-grid a:hover { color: var(--ink); text-decoration: underline; }
@@ -172,8 +185,8 @@ p { margin: 0; }
 /* ---------- Buttons ---------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: var(--r-sm); border: 1px solid transparent; font-weight: 600; font-size: 15px; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s; }
 .btn svg { flex: none; }
-.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-sm); }
-.btn-primary:hover { background: var(--accent-hover); color: var(--on-accent); }
+.btn-primary { background: var(--btn); color: var(--on-btn); box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--btn-hover); color: var(--on-btn); }
 .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line-2); }
 .btn-secondary:hover { border-color: var(--ink-3); color: var(--ink); }
 .btn-quiet { background: transparent; color: var(--ink-2); }
@@ -199,7 +212,7 @@ p { margin: 0; }
 .control select { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%); background-position: calc(100% - 9px) 52%, calc(100% - 4px) 52%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 18px; }
 .control select option { background: var(--surface); color: var(--ink); }
 .control .affix { color: var(--ink-3); font-size: 14.5px; white-space: nowrap; }
-.control input::placeholder, .control textarea::placeholder { color: var(--ink-3); opacity: .75; }
+.control input::placeholder, .control textarea::placeholder { color: var(--ink-3); opacity: .8; }
 .control.invalid { border-color: var(--bad); }
 .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -259,7 +272,7 @@ details.section > .section-body { padding: 0 0 20px; display: grid; gap: 14px; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 650; line-height: 1.5; white-space: nowrap; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
 .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .pill.draft { color: var(--ink-2); }
-.pill.sent { background: var(--accent-soft); color: var(--accent-ink); border-color: transparent; }
+.pill.sent { background: var(--info-soft); color: var(--info); border-color: transparent; }
 .pill.paid, .pill.accepted { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .pill.overdue, .pill.declined { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
 .pill.running { background: var(--warn-soft); color: var(--warn); border-color: transparent; }

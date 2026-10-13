@@ -6,6 +6,10 @@ import { compose, stages, suggestStage, type Stage, type ReminderInput } from '.
 import { listDocs, totals, type Doc } from '../lib/documents';
 import { getProfile } from '../lib/profile';
 import { currencies } from '../data/currencies';
+import { normaliseLink } from '../lib/qr';
+
+/** Payment details plus the online payment link, one per line. */
+const howToPay = (details: string, link: string) => [details.trim(), normaliseLink(link) ? `Online: ${normaliseLink(link)}` : ''].filter(Boolean).join('\n');
 import { daysBetween, todayISO, addDays, money, fmtDate, toNum } from '../lib/format';
 
 type State = {
@@ -38,7 +42,7 @@ export default function ReminderEmail() {
       ...prev,
       yourName: prev.yourName || p.yourName,
       business: prev.business || p.businessName,
-      paymentDetails: prev.paymentDetails || p.paymentDetails,
+      paymentDetails: prev.paymentDetails || howToPay(p.paymentDetails, p.paymentLink),
       currency: prev.number ? prev.currency : p.currency,
       dueDate: prev.dueDate || addDays(todayISO(), -5),
     }));
@@ -51,10 +55,23 @@ export default function ReminderEmail() {
     setS((prev) => ({
       ...prev,
       contact: d.client.contact, company: d.client.name, email: d.client.email, number: d.number,
-      amount: String(totals(d).total), currency: d.currency, dueDate: d.dueDate, project: d.project,
+      amount: String(totals(d).balance), currency: d.currency, dueDate: d.dueDate, project: d.project,
       yourName: d.from.yourName || p.yourName, business: d.from.businessName || p.businessName,
-      paymentDetails: d.paymentDetails || p.paymentDetails, stage: 'auto',
+      paymentDetails: howToPay(d.paymentDetails || p.paymentDetails, d.paymentLink || p.paymentLink), stage: 'auto',
     }));
+  }
+
+  const isBlank = !s.number && !s.amount && !s.contact && !s.company;
+  function fillExample() {
+    setPicked('');
+    setS((prev) => ({
+      ...prev,
+      contact: 'Jordan Lee', company: 'Northwind Studio Ltd', email: 'accounts@example.com', number: 'INV-014', amount: '4400',
+      dueDate: addDays(todayISO(), -5), project: 'the website redesign',
+      yourName: prev.yourName || 'Alex Morgan', business: prev.business || 'Morgan Studio',
+      paymentDetails: prev.paymentDetails || 'Wise: alex@example.com', stage: 'auto',
+    }));
+    showToast('Example added. Change anything you like.');
   }
 
   const set = <K extends keyof State>(k: K) => (e: Event) => {
@@ -77,12 +94,18 @@ export default function ReminderEmail() {
 
   return (
     <div class="split wide-right reminder">
-      <form class="panel" onSubmit={(e) => e.preventDefault()} noValidate>
+      <section class="panel" aria-label="Invoice details">
+        {isBlank && (
+          <div class="example-bar" style="margin-top:0;margin-bottom:20px">
+            <span>Trying it out? See a finished email with example details.</span>
+            <button type="button" class="btn btn-secondary btn-sm" onClick={fillExample}><Icon name="sparkle" size={16} />Fill in an example</button>
+          </div>
+        )}
         {invoices.length > 0 && (
           <Field label="Fill in from a saved invoice" hint="Unpaid invoices from your workspace.">
             {(id) => (
               <Select id={id} value={picked} onChange={(e) => { const d = invoices.find((x) => x.id === (e.target as HTMLSelectElement).value); if (d) fill(d); else setPicked(''); }}
-                options={[['', 'Choose an invoice…'], ...invoices.map((d) => [d.id, `${d.number}${d.client.name ? `, ${d.client.name}` : ''} (${money(totals(d).total, d.currency)}, due ${fmtDate(d.dueDate)})`] as [string, string])]} />
+                options={[['', 'Choose an invoice…'], ...invoices.map((d) => [d.id, `${d.number}${d.client.name ? `, ${d.client.name}` : ''} (${money(totals(d).balance, d.currency)}, due ${fmtDate(d.dueDate)})`] as [string, string])]} />
             )}
           </Field>
         )}
@@ -127,7 +150,7 @@ export default function ReminderEmail() {
           </div>
           <label class="check"><input type="checkbox" checked={s.pauseWork} onChange={set('pauseWork')} />In the final notice, say work is paused until it's paid</label>
         </div>
-      </form>
+      </section>
 
       <div class="sticky">
         <div class="stage-pick" role="radiogroup" aria-label="Reminder stage">

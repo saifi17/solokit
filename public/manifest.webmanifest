@@ -6,7 +6,7 @@
   "scope": "/solokit/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#2D44D8",
+  "theme_color": "#0F6B58",
   "icons": [
     { "src": "/solokit/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/solokit/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },

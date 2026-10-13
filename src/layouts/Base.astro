@@ -28,20 +28,19 @@ const isProd = import.meta.env.PROD;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={`${base}icons/apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}manifest.webmanifest`} />
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
     <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0F1220" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#0E1214" media="(prefers-color-scheme: dark)" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SoloKit" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -49,7 +48,7 @@ const isProd = import.meta.env.PROD;
 
     <!-- Apply a saved light/dark choice before the page paints. -->
     <script is:inline>
-      (function () { try { var t = localStorage.getItem('solokit:theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+      (function () { try { var t = localStorage.getItem('solokit:theme'); if (t === 'dark' || t === 'light') { document.documentElement.setAttribute('data-theme', t); document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.setAttribute('content', t === 'dark' ? '#0E1214' : '#FFFFFF'); }); } } catch (e) {} })();
     </script>
     {jsonLd.map((data: object) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
   </head>

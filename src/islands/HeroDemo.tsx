@@ -37,9 +37,9 @@ function PricePreview() {
   const r = calcRate({ income: '60000', costs: '6000', tax: '25', hours: '25', off: '6', margin: '10' })!;
   const parts = [
     { l: 'Take-home', v: r.income, c: 'var(--accent)' },
-    { l: 'Tax', v: r.taxAmount, c: '#E0A33A' },
-    { l: 'Costs', v: r.costs, c: '#3FA37C' },
-    { l: 'Margin', v: r.marginAmount, c: '#9AA3BC' },
+    { l: 'Tax', v: r.taxAmount, c: '#D99A2B' },
+    { l: 'Costs', v: r.costs, c: '#5B7DB1' },
+    { l: 'Margin', v: r.marginAmount, c: '#A7AEB4' },
   ];
   return (
     <div class="pv pv-price">
@@ -151,6 +151,7 @@ export default function HeroDemo() {
         ))}
       </div>
       <div class="demo-panel" id="demo-panel" role="tabpanel" aria-labelledby={`demo-tab-${i}`}>
+        <p class="ask demo-ask" key={`ask-${i}`}><small>Client</small>“{t.ask}”</p>
         <div class="demo-head">
           <span class="demo-icon"><Icon name={t.icon} size={20} /></span>
           <div><b>{t.title}</b><span>{t.short}</span></div>

@@ -5,7 +5,8 @@ import MeetingPlanner from '../../islands/MeetingPlanner';
 const faq: [string, string][] = [
   ['How do I find a meeting time across time zones?', 'Add your city and your clients\' cities, set the usual working hours, and the planner highlights the hours when everyone is at work. Click any hour to choose it, then copy it for an email or download a calendar invite.'],
   ['Does it handle daylight saving time?', 'Yes. Pick the date of the meeting and the planner uses the right offset for each city on that day. Clocks change on different dates in the US, Europe and elsewhere, so the gap between cities can shift for a week or two.'],
-  ['What if there are no shared working hours?', 'The planner suggests the hour that asks the least of everyone. With very distant clients, one side often starts early or stays late, or you agree to work by email and recorded video instead.'],
+  ['What if there are no shared working hours?', 'The planner suggests the hour that asks the least of everyone. With very distant clients, one side often starts early or stays late: press that city\'s hours in the table (for example "9am–5pm") and change them, and the best time updates. Or agree to work by email and recorded video instead.'],
+  ['Can each city have different working hours?', 'Yes. The working hours on the left apply to every city. To change one city, press its hours in the table, for example if your client starts at 8am or you work from 2pm to 11pm to overlap with the US. Shared links keep these hours.'],
   ['How do I send the time to my client?', 'Use "Copy for email" for a message listing the time in every city, "Calendar invite" for a file that works with Outlook, Apple Calendar and Google, or "Share link" to send a link that opens this exact plan.'],
   ['Is my location stored?', 'No. Your time zone is read from your device to choose a starting city, and your cities are saved only in your browser.'],
 ];
@@ -16,7 +17,7 @@ const faq: [string, string][] = [
   description="Find the best meeting time with clients in other countries. See shared working hours across cities, then copy the time for an email or download a calendar invite. Free."
   h1="Time zone meeting planner"
   lede="Add your clients' cities to see the working hours you share. Pick a slot, then send it as an email, a calendar invite or a link."
-  trust={['Daylight saving handled', 'Calendar invites (.ics)', 'Shareable links']}
+  trust={['Daylight saving handled', 'Different hours per city', 'Calendar invites and shareable links']}
   faq={faq}
 >
   <MeetingPlanner client:only="preact">
@@ -28,7 +29,7 @@ const faq: [string, string][] = [
     <ol>
       <li>The first city is the main time zone; the columns follow its hours. It starts as the time zone your device reports. Use the ↑ button to make another city the main one.</li>
       <li>Add each client's city. You can add as many as you need.</li>
-      <li>Set the hours people usually work. 9 to 5 is the default.</li>
+      <li>Set the hours people usually work. 9 to 5 is the default. If one person keeps different hours, press the hours under their city and change just theirs.</li>
       <li>Yellow columns are the hours when everyone is working. Click any hour to choose it.</li>
       <li>Send it: copy the times for an email, download a calendar invite, or share a link.</li>
     </ol>

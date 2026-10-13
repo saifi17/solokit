@@ -13,6 +13,7 @@ import { getProfile, updateProfile, takeNumber, peekNumber, resizeLogo, hasBusin
 import { subscribe } from '../lib/storage';
 import { currencies } from '../data/currencies';
 import { addDays, todayISO, money, fmtDate, toNum, fmtDateLong, round2, toISO } from '../lib/format';
+import { normaliseLink } from '../lib/qr';
 import { uid } from '../lib/id';
 import { loadEntries, saveEntries, duration, type TimeEntry } from '../lib/time';
 
@@ -23,7 +24,7 @@ const invoiceTerms: [string, string][] = [
 const quoteValidity: [string, string][] = [['7', '7 days'], ['14', '14 days'], ['30', '30 days'], ['60', '60 days'], ['90', '90 days'], ['-1', 'Custom date']];
 const units: [string, string][] = [['', 'No unit'], ['hrs', 'hours'], ['days', 'days'], ['items', 'items']];
 const taxLabels: [string, string][] = [['Tax', 'Tax'], ['VAT', 'VAT'], ['GST', 'GST'], ['Sales tax', 'Sales tax'], ['HST', 'HST']];
-const accents = ['#2D44D8', '#1E2433', '#11845B', '#0E7490', '#7A3B8F', '#B4532A', '#B42318'];
+const accents: [string, string][] = [['#0F6B58', 'Evergreen'], ['#1C232B', 'Charcoal'], ['#2D44D8', 'Blue'], ['#0E7490', 'Teal'], ['#6D3B8F', 'Plum'], ['#B4532A', 'Rust'], ['#A8322A', 'Red']];
 const templates: [Doc['template'], string, string][] = [
   ['modern', 'Modern', 'Colour header, bold total'],
   ['classic', 'Classic', 'Serif letterhead'],
@@ -31,6 +32,13 @@ const templates: [Doc['template'], string, string][] = [
 ];
 
 const isBlankItem = (it: LineItem) => !it.description.trim() && !toNum(it.rate);
+
+/** Grow a textarea with its text in browsers that don't support CSS field-sizing yet. */
+function autoGrow(el: HTMLTextAreaElement) {
+  if (typeof CSS !== 'undefined' && CSS.supports?.('field-sizing', 'content')) return;
+  el.style.height = 'auto';
+  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+}
 
 export default function DocEditor({ type }: { type: DocType }) {
   const [doc, setDoc] = useState<Doc | null>(null);
@@ -218,7 +226,7 @@ export default function DocEditor({ type }: { type: DocType }) {
     if (nextDoc) open(nextDoc, true); else startNew();
     showToast(`${Label} deleted`);
   }
-  function convert(mode: 'full' | 'deposit') {
+  function convert(mode: 'full' | 'deposit' | 'balance') {
     flush();
     const quote = { ...doc!, status: 'accepted' as DocStatus };
     saveDoc(quote);
@@ -295,10 +303,18 @@ export default function DocEditor({ type }: { type: DocType }) {
     const first = doc!.client.contact.trim().split(/\s+/)[0] || 'there';
     const sender = [doc!.from.yourName || doc!.from.businessName, doc!.from.yourName && doc!.from.businessName ? doc!.from.businessName : ''].filter(Boolean).join('\n') || '[Your name]';
     const forProject = doc!.project ? ` for ${doc!.project}` : '';
+    if (type === 'invoice' && doc!.status === 'paid') {
+      return {
+        subject: `Receipt for invoice ${doc!.number}`,
+        body: `Hi ${first},\n\nThank you for your payment of ${m(t!.total)} for invoice ${doc!.number}${forProject}${doc!.paidDate ? `, received on ${fmtDateLong(doc!.paidDate)}` : ''}. I've attached the invoice marked as paid, for your records.\n\nIt was a pleasure working with you, and I'm here if you need anything else.\n\nBest regards,\n${sender}`,
+      };
+    }
     if (type === 'invoice') {
+      const link = normaliseLink(doc!.paymentLink || '');
+      const how = [doc!.paymentDetails.trim(), link ? `Online: ${link}` : ''].filter(Boolean).join('\n');
       return {
         subject: `Invoice ${doc!.number} from ${doc!.from.businessName || doc!.from.yourName || '[your business]'}`,
-        body: `Hi ${first},\n\nPlease find attached invoice ${doc!.number}${forProject}, for ${m(t!.total)}. It is due on ${fmtDateLong(doc!.dueDate)}.\n\n${doc!.paymentDetails ? `You can pay by:\n${doc!.paymentDetails}\n\n` : ''}Thank you for your business, and let me know if you have any questions.\n\nBest regards,\n${sender}`,
+        body: `Hi ${first},\n\nPlease find attached invoice ${doc!.number}${forProject}, for ${m(t!.balance)}${t!.paid > 0 ? ` (the balance after the ${m(t!.paid)} already paid)` : ''}. It is due on ${fmtDateLong(doc!.dueDate)}.\n\n${how ? `You can pay by:\n${how}\n\n` : ''}Thank you for your business, and let me know if you have any questions.\n\nBest regards,\n${sender}`,
       };
     }
     return {
@@ -308,6 +324,28 @@ export default function DocEditor({ type }: { type: DocType }) {
   }
 
   const fromFilled = !!(doc.from.businessName || doc.from.yourName);
+  const isBlank = !doc.client.name && doc.items.every(isBlankItem);
+
+  function fillExample() {
+    const items: LineItem[] = type === 'invoice'
+      ? [
+        { id: uid(), description: 'Website design, 5 pages', qty: 1, unit: '', rate: 2800 },
+        { id: uid(), description: 'Front-end development', qty: 20, unit: 'hrs', rate: 80 },
+        { id: uid(), description: 'Hosting setup and launch', qty: 1, unit: '', rate: 250 },
+      ]
+      : [
+        { id: uid(), description: 'Discovery workshop and site plan', qty: 1, unit: '', rate: 600 },
+        { id: uid(), description: 'Website design, 5 pages', qty: 1, unit: '', rate: 2800 },
+        { id: uid(), description: 'Development and launch', qty: 1, unit: '', rate: 1400 },
+      ];
+    update({
+      client: { name: 'Northwind Studio Ltd', contact: 'Jordan Lee', email: 'accounts@example.com', address: '400 Market Street, Suite 12\nSan Francisco, CA 94103, USA', taxId: '' },
+      project: 'Website redesign',
+      ...(type === 'quote' ? { timeline: '4 weeks from the deposit' } : {}),
+      items,
+    });
+    showToast('Example added. Change anything you like.');
+  }
   const termsValue = String(doc.terms);
   const pageW = doc.paper === 'Letter' ? 816 : 794;
 
@@ -336,6 +374,9 @@ export default function DocEditor({ type }: { type: DocType }) {
             <div class="more-menu" role="menu" onClick={() => setMoreOpen(false)}>
               {type === 'quote' && <button type="button" role="menuitem" onClick={() => setModal('convert')}><Icon name="invoice" />Turn into an invoice</button>}
               <button type="button" role="menuitem" onClick={() => setModal('email')}><Icon name="mail" />Write the email</button>
+              {type === 'invoice' && doc.status === 'sent' && saved && (
+                <button type="button" role="menuitem" onClick={() => { flush(); window.location.href = `${base()}tools/late-payment-email-generator/?doc=${doc.id}`; }}><Icon name="send" />Send a payment reminder</button>
+              )}
               <button type="button" role="menuitem" onClick={dup}><Icon name="copy" />Duplicate</button>
               <button type="button" role="menuitem" onClick={() => { flush(); window.location.href = `${base()}workspace/`; }}><Icon name="folder" />All documents</button>
               <button type="button" role="menuitem" class="danger" onClick={() => setModal('delete')}><Icon name="trash" />Delete</button>
@@ -348,6 +389,12 @@ export default function DocEditor({ type }: { type: DocType }) {
 
   const form = (
     <form class="panel doc-form" onSubmit={(e) => e.preventDefault()} noValidate hidden={isMobile && tab === 'preview'}>
+      {isBlank && (
+        <div class="example-bar">
+          <span>First time here? See how it works with example data.</span>
+          <button type="button" class="btn btn-secondary btn-sm" onClick={fillExample}><Icon name="sparkle" size={16} />Fill in an example</button>
+        </div>
+      )}
       <details class="section" open>
         <summary>Your details<span class="sum-note">{doc.from.businessName || doc.from.yourName || 'Not added yet'}</span></summary>
         <div class="section-body">
@@ -450,7 +497,7 @@ export default function DocEditor({ type }: { type: DocType }) {
               <div class="item-row" key={it.id}>
                 <div class="control it-desc">
                   <textarea aria-label={`Line ${i + 1} description`} rows={1} value={it.description} placeholder="What you did, e.g. Homepage design"
-                    onInput={(e) => setItem(it.id, { description: (e.target as HTMLTextAreaElement).value })} />
+                    onInput={(e) => { const el = e.target as HTMLTextAreaElement; autoGrow(el); setItem(it.id, { description: el.value }); }} />
                 </div>
                 <div class="it-tools">
                   <button type="button" class="icon-btn" aria-label={`Move line ${i + 1} up`} title="Move up" disabled={i === 0} onClick={() => moveItem(it.id, -1)}><Icon name="chevron" size={16} class="up" /></button>
@@ -495,12 +542,25 @@ export default function DocEditor({ type }: { type: DocType }) {
                 <span class="affix">%</span>
               </div>
             </div>
+            {type === 'invoice' && (
+              <div class="field">
+                <label for={`paid-${doc.id}`}>Already paid</label>
+                <div class="control">
+                  <input id={`paid-${doc.id}`} type="number" inputMode="decimal" min="0" step="1" key={`paid-${doc.id}`} defaultValue={doc.amountPaid ? String(doc.amountPaid) : ''} placeholder="0"
+                    onInput={(e) => update({ amountPaid: toNum((e.target as HTMLInputElement).value) })} />
+                  <span class="affix">{doc.currency}</span>
+                </div>
+                <span class="hint">A deposit or part payment. The invoice shows the balance.</span>
+              </div>
+            )}
           </div>
           <dl class="mini-totals">
             <div><dt>Subtotal</dt><dd>{m(t.subtotal)}</dd></div>
             {t.discount > 0 && <div><dt>Discount</dt><dd>−{m(t.discount)}</dd></div>}
             {t.tax > 0 && <div><dt>{doc.taxLabel}</dt><dd>{m(t.tax)}</dd></div>}
-            <div class="big"><dt>{type === 'invoice' ? 'Amount due' : 'Total'}</dt><dd>{m(t.total)}</dd></div>
+            {t.paid > 0 && <div><dt>Total</dt><dd>{m(t.total)}</dd></div>}
+            {t.paid > 0 && <div><dt>{doc.status === 'paid' ? 'Paid in full' : 'Already paid'}</dt><dd>−{m(t.paid)}</dd></div>}
+            <div class="big"><dt>{type === 'invoice' ? (t.paid > 0 ? 'Balance due' : 'Amount due') : 'Total'}</dt><dd>{m(type === 'invoice' ? t.balance : t.total)}</dd></div>
             {type === 'quote' && doc.deposit > 0 && <div><dt>Deposit ({doc.deposit}%)</dt><dd>{m(t.deposit)}</dd></div>}
           </dl>
         </div>
@@ -514,9 +574,18 @@ export default function DocEditor({ type }: { type: DocType }) {
               {(id) => <TextArea id={id} rows={4} value={doc.quoteTerms} onInput={setField('quoteTerms')} />}
             </Field>
           )}
-          <Field label="How to pay you" hint={<>Bank, Wise, Payoneer or PayPal details. <button type="button" class="link-btn" onClick={() => { updateProfile({ paymentDetails: doc.paymentDetails }); showToast('Payment details saved for next time'); }}>Save for next time</button></>}>
+          <Field label="How to pay you" hint={<>Bank, Wise, Payoneer or PayPal details. <button type="button" class="link-btn" onClick={() => { updateProfile({ paymentDetails: doc.paymentDetails, paymentLink: doc.paymentLink }); showToast('Payment details saved for next time'); }}>Save for next time</button></>}>
             {(id) => <TextArea id={id} rows={3} value={doc.paymentDetails} onInput={setField('paymentDetails')} placeholder={'Bank transfer (USD): Alex Morgan\nAccount 1234567890, routing 026073150\nor Wise: alex@morganstudio.com'} />}
           </Field>
+          <Field label="Online payment link (optional)" hint="A PayPal.me, Stripe, Wise or Payoneer link. It's clickable in the PDF.">
+            {(id) => <Input id={id} type="url" inputMode="url" value={doc.paymentLink} onInput={(e) => update({ paymentLink: (e.target as HTMLInputElement).value, showQR: doc.paymentLink ? doc.showQR : true })} placeholder="paypal.me/alexmorgan" />}
+          </Field>
+          {doc.paymentLink.trim() && (
+            <label class="check">
+              <input type="checkbox" checked={doc.showQR} onChange={(e) => update({ showQR: (e.target as HTMLInputElement).checked })} />
+              Add a QR code, so clients can pay from their phone
+            </label>
+          )}
           <Field label="Notes (optional)">{(id) => <TextArea id={id} rows={2} value={doc.notes} onInput={setField('notes')} placeholder="Thank you for your business." />}</Field>
         </div>
       </details>
@@ -535,8 +604,8 @@ export default function DocEditor({ type }: { type: DocType }) {
           <div class="field">
             <span class="label">Accent colour</span>
             <div class="swatches" role="radiogroup" aria-label="Accent colour">
-              {accents.map((c) => (
-                <button type="button" role="radio" aria-checked={doc.accent.toLowerCase() === c.toLowerCase()} aria-label={`Colour ${c}`} style={{ background: c }} onClick={() => update({ accent: c })} />
+              {accents.map(([c, name]) => (
+                <button type="button" role="radio" aria-checked={doc.accent.toLowerCase() === c.toLowerCase()} aria-label={name} title={name} style={{ background: c }} onClick={() => update({ accent: c })} />
               ))}
               <label class="swatch-custom" title="Pick any colour">
                 <input type="color" value={doc.accent} onInput={(e) => update({ accent: (e.target as HTMLInputElement).value })} aria-label="Custom colour" />
@@ -602,6 +671,11 @@ export default function DocEditor({ type }: { type: DocType }) {
           {doc.deposit > 0 && doc.deposit < 100 && (
             <button type="button" class="choice" onClick={() => convert('deposit')}>
               <b>Invoice the {doc.deposit}% deposit</b><span>{m(t.deposit)} now, the rest when the work is done.</span>
+            </button>
+          )}
+          {doc.deposit > 0 && doc.deposit < 100 && (
+            <button type="button" class="choice" onClick={() => convert('balance')}>
+              <b>Invoice the remaining balance</b><span>Every line from the quote, with the {doc.deposit}% deposit ({m(t.deposit)}) shown as paid. Balance: {m(t.total - t.deposit)}.</span>
             </button>
           )}
           <button type="button" class="choice" onClick={() => convert('full')}>
