@@ -1,79 +1,103 @@
 ---
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
-import RateCalculator from '../components/RateCalculator.astro';
-import { tools } from '../data/tools.js';
+import HeroDemo from '../islands/HeroDemo';
+import { tools, toolUrl } from '../data/tools';
 
 const base = import.meta.env.BASE_URL;
 const siteUrl = new URL(base, Astro.site).href;
-const jsonLd = [{
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'SoloKit',
-  url: siteUrl,
-  description: 'Free, private tools for freelancers: hourly rate calculator, invoice generator and time zone meeting planner.',
-}];
+
+const faq: [string, string][] = [
+  ['Is SoloKit really free?', 'Yes. Every tool is free to use, with no sign-up, no trial and no watermark on your invoices or quotes.'],
+  ['Do I need an account?', 'No. Open a tool and use it. Your details, documents and time entries are saved in your browser, so they are there next time on the same device.'],
+  ['Where is my data stored?', 'Only on your device, in your browser\'s local storage. Nothing you type is sent to a server. You can download a backup from your Workspace at any time.'],
+  ['Does it work offline?', 'Yes. After your first visit, SoloKit keeps working without an internet connection, and you can install it like an app from your browser.'],
+  ['Who makes SoloKit?', 'SoloKit is designed and built by Saif Siddiqui, an independent full-stack developer and designer.'],
+];
+
+const jsonLd = [
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: 'SoloKit', url: siteUrl, description: 'Free tools for freelancers: rate calculator, quotes, time tracking, invoices, payment fees, reminders and meeting planning.' },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+];
+
+const why = [
+  { icon: 'shield', title: 'Private by design', text: 'Everything runs in your browser. Client names, rates and invoices never touch a server.' },
+  { icon: 'globe', title: 'Made for clients abroad', text: 'Any currency, A4 or US Letter, unambiguous dates, time zones and payment fees handled.' },
+  { icon: 'folder', title: 'Remembers your business', text: 'Add your details and logo once. Every quote, invoice and email fills itself in.' },
+  { icon: 'offline', title: 'Works offline', text: 'Install it like an app and keep working on a plane, or when the internet drops.' },
+];
 ---
 <Base
-  title="SoloKit: Free Tools for Freelancers (Rates, Invoices, Time Zones)"
-  description="Free tools for the business side of freelancing: work out your hourly rate, make PDF invoices and plan calls across time zones. No sign-up, nothing uploaded."
+  title="SoloKit: Free Tools for Freelancers (Invoices, Quotes, Rates, Time)"
+  description="Free tools for freelancers who work with clients worldwide: rate calculator, quotes, time tracker, invoices with PDF, payment fee comparison, reminder emails and a time zone planner. No sign-up."
   jsonLd={jsonLd}
 >
-  <div class="wrap">
-    <section class="home-hero">
-      <h1>The business side of freelancing, sorted in a minute.</h1>
-      <p class="lede">Free tools for pricing your work, billing clients and planning calls across time zones. No account, and your numbers stay in your browser.</p>
-    </section>
-
-    <section class="home-demo" aria-labelledby="demo-title">
-      <h2 id="demo-title" class="demo-title">What should you charge? Try it.</h2>
-      <RateCalculator compact />
-    </section>
-
-    <section id="tools" class="home-tools" aria-labelledby="tools-title">
-      <h2 id="tools-title">All tools</h2>
-      <ul class="tool-list">
-        {tools.map((t) => (
-          <li>
-            {t.live ? (
-              <a class="tool-row" href={`${base}tools/${t.slug}/`}>
-                <span class="ic"><Icon name={t.icon} /></span>
-                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
-                <span class="go"><Icon name="arrow" size={20} /></span>
-              </a>
-            ) : (
-              <div class="tool-row soon">
-                <span class="ic"><Icon name={t.icon} /></span>
-                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
-                <span class="soon-tag">Coming soon</span>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <section class="home-why">
-      <h2>Made for people who work alone</h2>
-      <div class="why-cols">
-        <p><strong>Private by design.</strong> Every tool runs in your browser. Rates, client names and invoices are never sent to a server.</p>
-        <p><strong>No sign-up, no watermark.</strong> Open a tool and use it. Invoices come out clean, with your name on them, not ours.</p>
-        <p><strong>Built by a freelancer.</strong> Each tool solves a problem from real client work: pricing, getting paid and finding a time to talk.</p>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Everything between “yes” and “paid”.</h1>
+        <p class="lede">Seven free tools for freelancers who work with clients around the world. Price the job, send the quote, track the hours, invoice, get paid and follow up, all in your browser.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href={toolUrl(base, 'invoice-generator')}><Icon name="invoice" />Make an invoice</a>
+          <a class="btn btn-secondary btn-lg" href={toolUrl(base, 'freelance-hourly-rate-calculator')}>Work out your rate</a>
+        </div>
+        <ul class="hero-trust">
+          <li><Icon name="check" size={17} />No sign-up</li>
+          <li><Icon name="check" size={17} />No watermark</li>
+          <li><Icon name="check" size={17} />Your data stays on your device</li>
+        </ul>
       </div>
-    </section>
-  </div>
-</Base>
+      <HeroDemo client:load />
+    </div>
+  </section>
 
-<style>
-  .home-hero { padding: 64px 0 36px; max-width: 820px; }
-  .home-hero .lede { margin-top: 18px; }
-  .home-demo { padding-bottom: 24px; }
-  .demo-title { font-size: 20px; margin-bottom: 16px; color: var(--ink-2); font-weight: 600; }
-  .home-tools { margin-top: 72px; }
-  .home-tools h2 { margin-bottom: 18px; }
-  .home-why { margin-top: 80px; }
-  .home-why h2 { margin-bottom: 20px; }
-  .why-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; color: var(--ink-2); }
-  .why-cols strong { color: var(--ink); display: block; margin-bottom: 4px; }
-  @media (max-width: 800px) { .why-cols { grid-template-columns: 1fr; gap: 18px; } .home-hero { padding-top: 40px; } }
-</style>
+  <section id="tools" class="wrap home-section">
+    <div class="section-head">
+      <h2>The tools, in the order you'll use them</h2>
+      <p class="muted">Each one hands off to the next: an accepted quote becomes an invoice, tracked hours become invoice lines, and an overdue invoice becomes a reminder email.</p>
+    </div>
+    <ol class="journey">
+      {tools.map((t) => (
+        <li>
+          <a class="tool-card" href={toolUrl(base, t.slug)}>
+            <span class="tc-top"><span class="tc-icon"><Icon name={t.icon} /></span><span class="tc-step">Step {t.step}: {t.stage}</span></span>
+            <b>{t.name}</b>
+            <span class="d">{t.short}</span>
+          </a>
+        </li>
+      ))}
+      <li>
+        <a class="tool-card ws-card" href={`${base}workspace/`}>
+          <span class="tc-top"><span class="tc-icon"><Icon name="folder" /></span><span class="tc-step">Always there</span></span>
+          <b>Your workspace</b>
+          <span class="d">Every invoice and quote, what's paid and what's overdue, your clients and backups.</span>
+        </a>
+      </li>
+    </ol>
+  </section>
+
+  <section class="wrap home-section">
+    <div class="section-head"><h2>Why freelancers use SoloKit</h2></div>
+    <div class="why">
+      {why.map((w) => (
+        <div class="why-item">
+          <span class="why-icon"><Icon name={w.icon} /></span>
+          <h3>{w.title}</h3>
+          <p class="muted">{w.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap home-section home-faq">
+    <div class="section-head"><h2>Questions</h2></div>
+    <div class="faq">
+      {faq.map(([q, a]) => (
+        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+</Base>

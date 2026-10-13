@@ -1,0 +1,44 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import DocEditor from '../../islands/DocEditor';
+
+const faq: [string, string][] = [
+  ['What should a freelance quote include?', 'Your details and the client\'s, a quote number and date, what you will deliver (one line per deliverable or phase), the price of each, the total, how long the quote is valid, the timeline, the deposit you need to start, and your terms: revisions included, how extra work is billed, and when payments are due.'],
+  ['What is the difference between a quote and an estimate?', 'A quote is a fixed price for an agreed scope: if the client accepts, that is what they pay. An estimate is a best guess that can change. If the scope is still fuzzy, call it an estimate or quote a smaller first phase.'],
+  ['How much deposit should a freelancer ask for?', 'Many freelancers ask for 25–50% upfront, and 100% for small jobs or new clients abroad. A deposit confirms the client is serious and protects you if a project is cancelled.'],
+  ['How long should a quote be valid?', '14 to 30 days is common. It stops a client accepting an old price months later, when your rates or availability have changed.'],
+  ['Can I turn the quote into an invoice?', 'Yes. Once the client accepts, choose "Turn into an invoice" from the menu. You can invoice just the deposit or the full amount, and the client and work are copied across.'],
+];
+---
+<ToolLayout
+  slug="project-quote-generator"
+  title="Free Project Quote Generator for Freelancers (PDF) | SoloKit"
+  description="Make a professional project quote with deposit, timeline and terms, and save it as a PDF. Turn accepted quotes into invoices in one click. Free, no sign-up."
+  h1="Project quote generator"
+  lede="Price the work line by line, add a deposit, a timeline and your terms, and send a clean PDF. When the client says yes, turn it into an invoice in one click."
+  trust={['Free, no watermark', 'Deposit and acceptance lines', 'Becomes an invoice in one click']}
+  faq={faq}
+>
+  <DocEditor client:only="preact" type="quote">
+    <div slot="fallback" class="panel" style="min-height:560px"><p class="muted">Loading the quote editor…</p></div>
+  </DocEditor>
+
+  <Fragment slot="article">
+    <h2>How to write a quote clients say yes to</h2>
+    <ol>
+      <li><strong>Lead with the outcome.</strong> Give the project a clear name, like "New booking website", so the client sees what they are buying.</li>
+      <li><strong>Break the work into deliverables.</strong> Three to six lines with a price each are easier to approve than one big number, and make it easy to remove a line if the budget is tight.</li>
+      <li><strong>Say what's included.</strong> Rounds of revisions, meetings, and what happens if the scope grows. This prevents most disputes before they start.</li>
+      <li><strong>Ask for a deposit.</strong> 25–50% to start is normal. It confirms the booking and reduces your risk.</li>
+      <li><strong>Set an expiry date.</strong> Your calendar and prices change; a quote shouldn't be valid forever.</li>
+    </ol>
+
+    <h2>Quoting clients in other countries</h2>
+    <ul>
+      <li>Quote in the client's currency when you can. It's easier for them to approve, and you can compare the cost of getting paid with the <a href="../payment-fee-calculator/">payment fee calculator</a>.</li>
+      <li>Choose US Letter paper for clients in the US and Canada, A4 for almost everyone else (under Design).</li>
+      <li>Write dates as "13 Nov 2026", not 11/13/2026, which reads differently in the US and Europe. SoloKit does this for you.</li>
+      <li>Add the client's VAT number if they are a business in the EU or UK; their accountant will ask for it.</li>
+    </ul>
+  </Fragment>
+</ToolLayout>

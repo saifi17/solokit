@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import Workspace from '../islands/Workspace';
+---
+<Base title="Your Workspace | SoloKit" description="Your invoices, quotes, clients, business details and backups, saved privately in this browser." current="workspace" noindex>
+  <section class="wrap tool-head">
+    <h1>Your workspace</h1>
+    <p class="lede">Every invoice and quote you've made, who has paid, and your business details. All of it is stored only in this browser.</p>
+  </section>
+  <section class="bench">
+    <div class="wrap">
+      <Workspace client:only="preact">
+        <div slot="fallback" class="panel" style="min-height:420px"><p class="muted">Loading your workspace…</p></div>
+      </Workspace>
+    </div>
+  </section>
+</Base>

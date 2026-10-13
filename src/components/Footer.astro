@@ -1,0 +1,39 @@
+---
+import LogoMark from './LogoMark.astro';
+import { tools, toolUrl } from '../data/tools';
+const base = import.meta.env.BASE_URL;
+const year = new Date().getFullYear();
+const firstHalf = tools.slice(0, 4);
+const secondHalf = tools.slice(4);
+---
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-about">
+        <a class="brand" href={base}><LogoMark size={28} />SoloKit</a>
+        <p>Free tools for freelancers who work with clients around the world. No sign-up, and your data never leaves your device.</p>
+      </div>
+      <div>
+        <h3>Before the work</h3>
+        <ul>{firstHalf.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h3>Getting paid</h3>
+        <ul>{secondHalf.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h3>SoloKit</h3>
+        <ul>
+          <li><a href={`${base}workspace/`}>Workspace</a></li>
+          <li><a href={`${base}about/`}>About</a></li>
+          <li><a href={`${base}privacy/`}>Privacy</a></li>
+          <li><a href="mailto:saifsiddiqui1717@gmail.com">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-base">
+      <span>© {year} SoloKit. Free to use, no account needed.</span>
+      <span>Designed and built by <a href="https://saifi17.github.io">Saif Siddiqui</a></span>
+    </div>
+  </div>
+</footer>

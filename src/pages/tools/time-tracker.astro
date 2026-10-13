@@ -1,0 +1,38 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import TimeTracker from '../../islands/TimeTracker';
+
+const faq: [string, string][] = [
+  ['Do I need an account to track time?', 'No. Open the page and press Start. Your entries are saved in your browser, so they are there when you come back on the same device.'],
+  ['Does the timer keep running if I close the tab?', 'Yes. The start time is saved, so when you reopen SoloKit the timer shows the right time and you can stop it.'],
+  ['How do I turn tracked time into an invoice?', 'Under "Ready to invoice", press "Create invoice" next to a client. A draft invoice opens with one line per entry, using the hours and rate you tracked. The entries are marked as billed so you never bill them twice.'],
+  ['Can I send a timesheet to my client?', 'Yes. Download your entries as a CSV file and open it in Excel or Google Sheets, or attach it to your invoice.'],
+  ['What if I forgot to start the timer?', 'Use "Add time manually" and enter the start and end time. You can edit or delete any entry later.'],
+];
+---
+<ToolLayout
+  slug="time-tracker"
+  title="Free Time Tracker for Freelancers: Track Hours, Invoice Clients | SoloKit"
+  description="Simple free time tracker for freelancers. Time work per client, see weekly totals, export a timesheet and turn unbilled hours into an invoice. No sign-up."
+  h1="Time tracker for freelancers"
+  lede="Start a timer, pick the client, and get back to work. At the end of the week, your unbilled hours become an invoice in one click."
+  trust={['No account needed', 'Hours become invoice lines', 'CSV timesheets']}
+  faq={faq}
+>
+  <TimeTracker client:only="preact">
+    <div slot="fallback" class="panel" style="min-height:420px"><p class="muted">Loading the time tracker…</p></div>
+  </TimeTracker>
+
+  <Fragment slot="article">
+    <h2>Why track your time, even on fixed-price work</h2>
+    <p>Hourly work needs a record your client can trust. But tracking pays off on fixed-price projects too: after a few jobs you'll know how long a homepage, a logo or an article really takes, and your next quote will be much closer to reality.</p>
+    <h2>A simple routine that works</h2>
+    <ol>
+      <li>Start the timer when you start a task. Write the task the way you'd describe it on an invoice, like "Checkout page design".</li>
+      <li>Stop it for breaks and calls with other clients. Add forgotten time by hand at the end of the day.</li>
+      <li>Once a week or month, invoice the unbilled hours for each client.</li>
+    </ol>
+    <h2>Billable and non-billable time</h2>
+    <p>Not every hour can be billed: sales, admin and learning are part of running a business. Tracking them too (without a rate, or under your own business name as the client) shows how many billable hours a week you can really manage, which is the most important number in the <a href="../freelance-hourly-rate-calculator/">rate calculator</a>.</p>
+  </Fragment>
+</ToolLayout>

@@ -1,11 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
+import { tools, toolUrl } from '../data/tools';
 const base = import.meta.env.BASE_URL;
 ---
-<Base title="Page not found | SoloKit" description="This page doesn't exist.">
+<Base title="Page not found | SoloKit" description="This page doesn't exist." noindex>
   <div class="wrap page">
     <h1>This page doesn't exist</h1>
-    <p class="lede">The link may be old or mistyped. All the tools are on the home page.</p>
-    <p><a class="btn btn-primary" href={base}>Go to all tools</a></p>
+    <p class="lede">The link may be old or mistyped. Here are the tools:</p>
+    <ul>
+      {tools.map((t) => <li><a href={toolUrl(base, t.slug)}>{t.title}</a></li>)}
+    </ul>
+    <p><a class="btn btn-primary" href={base}>Go to the home page</a></p>
   </div>
 </Base>

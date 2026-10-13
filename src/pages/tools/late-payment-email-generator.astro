@@ -1,0 +1,47 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ReminderEmail from '../../islands/ReminderEmail';
+
+const faq: [string, string][] = [
+  ['How do I politely ask a client to pay an overdue invoice?', 'Keep it short and assume it was an oversight: mention the invoice number, amount and due date, attach the invoice again, give the payment details, and ask when you can expect payment. The "Polite reminder" stage does exactly that.'],
+  ['When should I send a payment reminder?', 'A friendly heads-up a few days before the due date prevents most late payments. Then send a polite reminder the day after it\'s due, a firmer follow-up after about a week, and a final notice after 30 days.'],
+  ['Can I charge a late payment fee?', 'Only if your contract or terms say so, or the law where your client is based allows it. In the UK, businesses can claim statutory interest on late business payments, and the EU has similar rules for payments between businesses. Check what applies to you before adding a fee.'],
+  ['What if the client still doesn\'t pay?', 'Pick up the phone or message them directly, pause further work, and if you used a marketplace, open a dispute there. For larger amounts, a collection agency or small claims process may be an option where your client is based.'],
+  ['Is my invoice data uploaded?', 'No. The email is written in your browser. If you choose a saved invoice, it is read from this device only.'],
+];
+---
+<ToolLayout
+  slug="late-payment-email-generator"
+  title="Late Payment Reminder Email Generator for Freelancers | SoloKit"
+  description="Write a polite or firm payment reminder in seconds. Four stages from friendly heads-up to final notice, filled in from your invoice. Copy it or open it in your email app."
+  h1="Payment reminder emails"
+  lede="An unpaid invoice is awkward. Pick how late it is, and get a clear, polite email that asks for the money without damaging the relationship."
+  trust={['Four reminder stages', 'Fills in from saved invoices', 'Copy or open in your email app']}
+  faq={faq}
+>
+  <ReminderEmail client:only="preact">
+    <div slot="fallback" class="panel" style="min-height:480px"><p class="muted">Loading the reminder writer…</p></div>
+  </ReminderEmail>
+
+  <Fragment slot="article">
+    <h2>The four stages</h2>
+    <table>
+      <thead><tr><th>Stage</th><th>When</th><th>Tone</th></tr></thead>
+      <tbody>
+        <tr><td>Friendly heads-up</td><td>A few days before, or on, the due date</td><td>Warm, assumes it's on its way</td></tr>
+        <tr><td>Polite reminder</td><td>1–7 days late</td><td>Checks the invoice arrived and asks for a date</td></tr>
+        <tr><td>Firm follow-up</td><td>8–30 days late</td><td>Sets a deadline and mentions late fees if your terms allow</td></tr>
+        <tr><td>Final notice</td><td>More than 30 days late</td><td>Clear consequences, still open to talk</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Tips that get invoices paid</h2>
+    <ul>
+      <li>Reply in the same email thread as the invoice, so the client has everything in one place.</li>
+      <li>Copy the person who pays (often accounts or finance) as well as your project contact.</li>
+      <li>Always include the payment details. "I'll find them later" is how invoices get forgotten.</li>
+      <li>Stay factual. The goal is to get paid and keep a client who may hire you again.</li>
+      <li>Next time, ask for a deposit upfront. The <a href="../project-quote-generator/">quote generator</a> adds one for you.</li>
+    </ul>
+  </Fragment>
+</ToolLayout>

@@ -1,0 +1,58 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import FeeCalculator from '../../islands/FeeCalculator';
+import { feeMethods, FEES_CHECKED } from '../../data/fees';
+
+const faq: [string, string][] = [
+  ['What is the cheapest way to receive an international payment as a freelancer?', 'For most freelancers, a client bank transfer to local account details from a service like Wise or Payoneer costs the least, because the transfer itself is often free and you only pay a small fee to convert the money. Card payments and PayPal usually cost the most, especially once currency conversion is added.'],
+  ['Why do I receive less than the fee percentage suggests?', 'Fees stack. A marketplace may take its cut first, then the payment provider takes a percentage plus a fixed fee, and converting to your local currency adds an exchange-rate margin on top. The calculator shows each step.'],
+  ['How do I make sure I receive the full amount?', 'Switch to "What should I charge?" and enter the amount you want to end up with. The calculator works backwards to the amount to invoice for each payment method.'],
+  ['Are these fees accurate for my country?', 'They are each provider\'s published fees, checked on ' + FEES_CHECKED + ', mostly for US accounts receiving a payment in US dollars. Fees vary by country and account type, so open a method to edit its numbers to match your account.'],
+  ['Where does the exchange rate come from?', 'When you choose a local currency, the calculator loads today\'s mid-market rate from a free public exchange-rate service (open.er-api.com). Only the currency codes are sent, nothing about you.'],
+];
+---
+<ToolLayout
+  slug="payment-fee-calculator"
+  title="Payment Fee Calculator: PayPal vs Wise vs Payoneer vs Stripe | SoloKit"
+  description="See how much of an international payment you keep with PayPal, Wise, Payoneer, Stripe or a bank wire, including marketplace and currency conversion fees. Or work out what to charge."
+  h1="Payment fee calculator"
+  lede="Compare how much of a client's payment you actually keep with PayPal, Wise, Payoneer, Stripe or a bank wire, after marketplace fees and currency conversion."
+  trust={['Published fees, checked ' + FEES_CHECKED, 'Upwork and Fiverr fees too', 'Works out what to charge']}
+  faq={faq}
+>
+  <FeeCalculator client:load />
+
+  <Fragment slot="article">
+    <h2>How payment fees add up</h2>
+    <p>When a client abroad pays you, up to three costs can come out of the money before it reaches your bank:</p>
+    <ol>
+      <li><strong>The marketplace fee</strong>, if the client found you on a platform like Upwork or Fiverr.</li>
+      <li><strong>The payment provider's fee</strong>: usually a percentage, sometimes plus a fixed amount per payment, and often extra for payments from another country.</li>
+      <li><strong>Currency conversion</strong>: the margin added to the exchange rate when the money is converted to your local currency. It's easy to miss because it's hidden in the rate.</li>
+    </ol>
+
+    <h2>Published fees used by the calculator</h2>
+    <table>
+      <thead><tr><th>Method</th><th>Fee</th><th>Conversion</th></tr></thead>
+      <tbody>
+        {feeMethods.map((m) => (
+          <tr>
+            <td>{m.source ? <a href={m.source} target="_blank" rel="noopener">{m.name}</a> : m.name}</td>
+            <td>{[m.pct ? `${m.pct}%` : '', m.fixed ? `${m.fixed.toFixed(2)} USD` : ''].filter(Boolean).join(' + ') || 'Free'}</td>
+            <td>{m.convPct}%</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="note">Checked {FEES_CHECKED}. Rates are for receiving US dollars and depend on your country and account. The bank wire row is an example, not a published rate.</p>
+
+    <h2>Five ways to lose less to fees</h2>
+    <ul>
+      <li>Give clients local bank details (for example, US account details from Wise or Payoneer) so they can pay by a free domestic transfer.</li>
+      <li>Avoid card payments for large invoices. The percentage fee grows with the amount.</li>
+      <li>Hold the money in the currency you were paid in if you'll spend it in that currency, and convert in larger batches.</li>
+      <li>Put your preferred payment method first on your invoice.</li>
+      <li>Build fees into your price. Use "What should I charge?" to see how much to add.</li>
+    </ul>
+  </Fragment>
+</ToolLayout>

@@ -1,0 +1,82 @@
+---
+import Icon from './Icon.astro';
+import LogoMark from './LogoMark.astro';
+import { tools, toolUrl } from '../data/tools';
+const { current = '' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href={base} aria-label="SoloKit home"><LogoMark />SoloKit</a>
+    <nav class="nav" aria-label="Main">
+      <div class="menu">
+        <button type="button" aria-expanded="false" aria-controls="tools-menu" data-menu-btn>
+          Tools <Icon name="chevron" size={16} />
+        </button>
+        <div class="menu-panel" id="tools-menu" hidden data-menu-panel>
+          {tools.map((t) => (
+            <a href={toolUrl(base, t.slug)}>
+              <span class="step"><Icon name={t.icon} size={18} /></span>
+              <span><b>{t.name}</b><span class="d">{t.short}</span></span>
+            </a>
+          ))}
+          <a class="all" href={`${base}#tools`}>
+            <span></span>
+            <span style="display:flex;justify-content:space-between;align-items:center;width:100%"><b>See how the tools fit together</b><Icon name="arrow" size={18} /></span>
+          </a>
+        </div>
+      </div>
+      <a href={`${base}workspace/`} aria-current={current === 'workspace' ? 'page' : undefined}>Workspace</a>
+      <a href={`${base}about/`} aria-current={current === 'about' ? 'page' : undefined}>About</a>
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Switch between light and dark theme">
+        <Icon name="sun" class="sun" /><Icon name="moon" class="moon" />
+      </button>
+      <button type="button" class="icon-btn burger" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-burger>
+        <Icon name="menu" class="i-open" /><Icon name="close" class="i-close" />
+      </button>
+    </nav>
+  </div>
+</header>
+<!-- Outside <header>: its blur effect would otherwise trap this fixed panel inside it. -->
+  <div class="mobile-nav" id="mobile-nav" hidden data-mobile-nav>
+  <p class="group">Tools, in the order you'll use them</p>
+  {tools.map((t) => (
+    <a href={toolUrl(base, t.slug)}><span class="step"><Icon name={t.icon} size={18} /></span>{t.name}</a>
+  ))}
+  <p class="group">SoloKit</p>
+  <a href={`${base}workspace/`}><span class="step"><Icon name="folder" size={18} /></span>Workspace</a>
+  <a href={`${base}about/`}><span class="step"><Icon name="info" size={18} /></span>About</a>
+</div>
+
+<script>
+  // Header behaviour: Tools dropdown, mobile menu, theme switch.
+  const btn = document.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const panel = document.querySelector<HTMLElement>('[data-menu-panel]');
+  const setMenu = (open: boolean) => {
+    if (!btn || !panel) return;
+    btn.setAttribute('aria-expanded', String(open));
+    panel.hidden = !open;
+  };
+  btn?.addEventListener('click', (e) => { e.stopPropagation(); setMenu(panel!.hidden); });
+  document.addEventListener('click', (e) => { if (panel && !panel.hidden && !panel.contains(e.target as Node)) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { setMenu(false); setMobile(false); } });
+
+  const burger = document.querySelector<HTMLButtonElement>('[data-burger]');
+  const mobile = document.querySelector<HTMLElement>('[data-mobile-nav]');
+  const setMobile = (open: boolean) => {
+    if (!burger || !mobile) return;
+    burger.setAttribute('aria-expanded', String(open));
+    burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    mobile.hidden = !open;
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  burger?.addEventListener('click', () => setMobile(mobile!.hidden));
+
+  document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('solokit:theme', next); } catch { /* ignore */ }
+  });
+</script>

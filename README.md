@@ -1,25 +1,38 @@
 # SoloKit
 
-Free, private tools for freelancers. Live at https://saifi17.github.io/solokit/
+Free, private tools for freelancers who work with clients around the world.
+Live at https://saifi17.github.io/solokit/
+
+The tools follow the order of a freelance job:
+
+1. **Meeting planner**: shared working hours across time zones, calendar invites, share links
+2. **Rate calculator**: minimum hourly/day rate from income goal, costs, tax and billable hours
+3. **Quote generator**: priced quotes with deposit, timeline and terms; becomes an invoice in one click
+4. **Time tracker**: timer per client; unbilled hours become invoice lines; CSV timesheets
+5. **Invoice generator**: three templates, logo, any currency, A4/Letter, PAID stamp, PDF
+6. **Payment fee calculator**: PayPal, Wise, Payoneer, Stripe and bank wire, with marketplace and conversion fees
+7. **Payment reminders**: four stages of late-payment emails, filled in from saved invoices
+
+Plus a **Workspace** (all documents, clients, business details, backup/restore) and offline support.
+Everything is stored in the visitor's browser (localStorage). There is no server.
 
 ## Run it locally
 ```
 npm install
 npm run dev      # http://localhost:4321/solokit/
-npm run build    # static files go to dist/
+npm run build    # static files go to dist/ (also writes the offline service worker)
+npx astro check  # type-check
 ```
 
 ## How the code is organised
-- `src/data/tools.js` – the list of tools. Add a tool here first.
-- `src/layouts/Base.astro` – <head> SEO tags, header, footer.
-- `src/layouts/ToolLayout.astro` – every tool page: title, tool, article, FAQ, related tools.
-- `src/components/RateCalculator.astro` – the hourly rate calculator (also used on the home page).
-- `src/pages/tools/*.astro` – one file per tool. The `<script>` at the bottom of each is the tool's logic and runs in the browser.
-- `src/styles/global.css` – colours, fonts, form fields and the "slip" result card.
+- `src/data/` – the tool list (`tools.ts`), icons, currencies, cities, payment fees (`fees.ts`, with sources and the date they were checked).
+- `src/lib/` – plain TypeScript logic with no UI: storage, formatting, profile, documents, time entries, time zones, calendar files, email templates, backups.
+- `src/islands/` – the interactive tools, written in Preact (React-style components). `ui.tsx` has shared building blocks.
+- `src/layouts/` – `Base.astro` (head, header, footer) and `ToolLayout.astro` (every tool page: heading, tool, article, FAQ, previous/next step).
+- `src/pages/` – one file per page. Each tool page holds its SEO text and FAQ.
+- `src/styles/` – `global.css` (design tokens, components), `tools.css` (page/tool styles), `doc.css` (invoice and quote documents, print).
 
-## Adding a tool
-1. Add an entry to `src/data/tools.js` (set `live: true` when ready).
-2. Create `src/pages/tools/<slug>.astro` using `ToolLayout`.
-3. Write a useful article and 4–5 FAQ answers for the page; they help it rank on Google.
+## Updating payment fees
+Edit `src/data/fees.ts`, update `FEES_CHECKED`, and keep each `source` link pointing to the provider's official fee page.
 
 Pushing to `main` builds and deploys the site through GitHub Actions.

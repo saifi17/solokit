@@ -1,6 +1,6 @@
 // Cities people commonly pick, with their IANA time zone names.
 // The browser's own Intl API does the time math (including daylight saving).
-export const cities = [
+export const cities: [string, string][] = [
   ['Honolulu', 'Pacific/Honolulu'],
   ['Anchorage', 'America/Anchorage'],
   ['Los Angeles', 'America/Los_Angeles'],

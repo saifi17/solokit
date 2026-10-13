@@ -1,47 +1,43 @@
 ---
 import ToolLayout from '../../layouts/ToolLayout.astro';
-import RateCalculator from '../../components/RateCalculator.astro';
+import RateCalculator from '../../islands/RateCalculator';
 
-const faq = [
-  ['How do I calculate my freelance hourly rate?',
-   'Add the take-home pay you want to your yearly business costs and the tax you will owe, then divide by the hours you can actually bill in a year. Billable hours are usually far fewer than the hours you work, because admin, sales and holidays are unpaid.'],
-  ['How many billable hours per week is realistic?',
-   'Most full-time freelancers bill 20 to 30 hours a week. The rest goes to finding clients, writing proposals, invoicing, learning and admin. If you plan on 40 billable hours, your rate will come out too low.'],
-  ['Should I charge hourly or per project?',
-   'Hourly is simpler when the scope is unclear. Per-project pricing usually pays better once you know how long the work takes, because you keep the gain when you get faster. Either way, start from your minimum hourly rate so you know which deals are worth taking.'],
-  ['What is a day rate?',
-   'A day rate is a fixed price for a full working day, commonly 8 hours. Many consultants and contractors quote day rates because they are easier to compare and avoid tracking every hour.'],
-  ['Does this calculator store my numbers?',
-   'No. The calculation runs in your browser and nothing you type is sent to a server.'],
+const faq: [string, string][] = [
+  ['How do I calculate my freelance hourly rate?', 'Add the take-home pay you want to your yearly business costs and the income tax you will owe, add a safety margin for quiet months, then divide by the hours you can actually bill in a year. Billable hours are far fewer than the hours you work, because sales, admin and holidays are unpaid.'],
+  ['How many billable hours a week is realistic?', 'Most full-time freelancers bill 20 to 30 hours a week. The rest goes on finding clients, writing proposals, invoicing, learning and admin. Planning on 40 billable hours makes your rate come out too low.'],
+  ['Should I charge by the hour, by the day or per project?', 'Hourly suits work with an unclear scope. Day rates suit consulting and contract work. Per-project pricing usually pays best once you know how long the work takes, because you keep the gain when you get faster. Whichever you use, start from your minimum hourly rate so you know which deals are worth taking.'],
+  ['What is a safety margin?', 'An extra percentage on top of what you need, to cover months with less work, clients who pay late, and unexpected costs. 10 to 20 percent is common.'],
+  ['Does this calculator store my numbers?', 'Only in your own browser, so they are there next time. Nothing is sent to a server.'],
 ];
 ---
 <ToolLayout
   slug="freelance-hourly-rate-calculator"
-  title="Freelance Hourly Rate Calculator: What Should I Charge? | SoloKit"
-  description="Free freelance rate calculator. Enter the income you want, your costs, tax and billable hours to get your minimum hourly and day rate."
-  h1="Freelance hourly rate calculator"
-  lede="Enter the income you want and how much you can realistically bill. You'll get the minimum hourly and day rate that covers tax, costs and time off."
+  title="Freelance Rate Calculator: What Should I Charge per Hour? | SoloKit"
+  description="Free freelance hourly rate calculator. Enter your income goal, costs, tax and billable hours to get your minimum hourly and day rate, and check your current rate."
+  h1="Freelance rate calculator"
+  lede="Find the minimum hourly and day rate that pays for tax, business costs and time off. Then check whether your current rate gets you there."
+  trust={['Free, no sign-up', 'Any currency', 'Saved only on your device']}
   faq={faq}
 >
-  <RateCalculator />
+  <RateCalculator client:load />
 
   <Fragment slot="article">
-    <h2>How the rate is worked out</h2>
-    <p>Most new freelancers take their old salary, divide by 2,000 working hours and wonder why they're short of money by spring. A freelance rate has to pay for things an employer used to cover: tax, equipment, software, holidays and all the hours you spend on work nobody pays for.</p>
-    <p class="formula">Hourly rate = (take-home pay ÷ (1 − tax rate) + business costs) ÷ (billable hours per week × weeks worked)</p>
-    <p>With the default numbers, $60,000 take-home at a 25% tax rate needs $80,000 of profit. Add $6,000 of costs and you must invoice $86,000. Billing 25 hours a week for 46 weeks gives 1,150 hours, so the minimum is $75 an hour.</p>
+    <h2>How your rate is worked out</h2>
+    <p>Most new freelancers take their old salary, divide by about 2,000 working hours and wonder why money is short by the spring. A freelance rate has to pay for things an employer used to cover: tax, equipment, software, holidays and all the hours you spend on work no one pays for.</p>
+    <p class="formula">Hourly rate = (take-home ÷ (1 − tax rate) + business costs) × (1 + safety margin) ÷ (billable hours per week × weeks worked)</p>
+    <p>With the starting numbers, a take-home goal of $60,000 at a 25% tax rate needs $80,000 of profit. Add $6,000 of costs and a 10% margin and you need to invoice $94,600 a year. Billing 25 hours a week for 46 weeks gives 1,150 hours, so the minimum is $83 an hour, or $664 a day.</p>
 
     <h2>Getting each number right</h2>
     <h3>Take-home pay</h3>
-    <p>Use what you need to live on and save, after tax. If you're leaving a job, your old net salary is a fair starting point. Include savings for retirement, since nobody else will pay into it.</p>
+    <p>Use what you need to live on and save, after tax. If you're leaving a job, your old net salary is a fair start. Include retirement savings and health cover if your employer used to pay for them.</p>
     <h3>Business costs</h3>
-    <p>List everything you pay to run your business for a year: laptop and phone (spread over their life), software subscriptions, internet, coworking, accountant, insurance, payment fees and training.</p>
+    <p>Count everything it takes to run your business for a year: laptop and phone spread over their life, software, internet, a coworking desk, insurance, an accountant and payment fees. Use "Help me add these up" for a quick list.</p>
     <h3>Tax rate</h3>
-    <p>Use your effective rate: total tax divided by profit. It's lower than your top bracket. If you're unsure, 20–30% is a common planning figure, and an accountant can give you a precise one.</p>
+    <p>Use your average (effective) rate: the total tax you pay divided by your profit. It's lower than your top tax band. If you're not sure, 20–30% is a common planning figure; an accountant in your country can give you a precise one.</p>
     <h3>Billable hours and weeks off</h3>
-    <p>Be honest here; it's the number that moves the result the most. Count holidays, public holidays and a few sick days as weeks off. Then count only hours a client pays for.</p>
+    <p>This is the number that moves the result most, so be honest. Count holidays, public holidays and a few sick days as weeks off, then count only the hours a client pays for.</p>
 
-    <h2>Your rate is a floor</h2>
-    <p>The result is the least you can charge and still meet your goal if every week goes to plan. Weeks rarely do. Many freelancers add 10–30% for quiet months and late payments, and charge more for rush jobs, specialist skills or clients who need a lot of meetings.</p>
+    <h2>Your rate is a floor, not a price</h2>
+    <p>The result is the least you can charge and still meet your goal. Charge more for rush jobs, specialist skills, high-value outcomes or clients who need a lot of meetings. When you know your floor, it's easier to say no to work that won't pay your bills.</p>
   </Fragment>
 </ToolLayout>

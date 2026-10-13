@@ -1,0 +1,171 @@
+/* =====================================================================
+   Invoice & quote documents.
+   Sized in real paper pixels (A4 = 794 x 1123, Letter = 816 x 1056 at
+   96 dpi) so the on-screen preview and the printed PDF match.
+   The preview scales the page down with a CSS transform.
+   ===================================================================== */
+
+.doc {
+  --doc-accent: #2D44D8;
+  --doc-ink: #1C2030;
+  --doc-ink-2: #555B6E;
+  --doc-line: #E1E3EA;
+  --doc-soft: color-mix(in srgb, var(--doc-accent) 7%, #fff);
+  position: relative;
+  width: 794px;
+  min-height: 1123px;
+  padding: 48px 56px 56px;
+  background: #fff;
+  color: var(--doc-ink);
+  font-family: var(--font);
+  font-stretch: 100%;
+  font-size: 13px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  color-scheme: light;
+}
+.doc.paper-Letter { width: 816px; min-height: 1056px; }
+.doc * { box-sizing: border-box; }
+.doc h1, .doc h2 { color: inherit; margin: 0; font-stretch: 100%; letter-spacing: 0; }
+.doc .ln { display: block; }
+.doc .doc-ph { color: #A3A8B8; font-style: italic; }
+.doc .doc-small { color: var(--doc-ink-2); font-size: 12.5px; }
+
+/* Header */
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.doc-brand { display: grid; gap: 4px; min-width: 0; }
+.doc-logo { max-width: 200px; max-height: 64px; width: auto; height: auto; object-fit: contain; margin-bottom: 8px; }
+.doc-from-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; line-height: 1.25; }
+.doc-titlebox { text-align: right; flex: none; }
+.doc-title { font-size: 34px; font-weight: 760; letter-spacing: -0.02em; line-height: 1; color: var(--doc-accent); }
+.doc-number { margin-top: 8px; color: var(--doc-ink-2); font-size: 13px; font-weight: 600; }
+
+/* Parties and dates */
+.doc-meta { display: grid; grid-template-columns: 1fr 1fr 0.95fr; gap: 24px; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--doc-line); }
+.doc-party { color: var(--doc-ink-2); min-width: 0; overflow-wrap: anywhere; }
+.doc-party h2, .doc-notes h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A90A2; margin-bottom: 6px; }
+.doc-party-name { color: var(--doc-ink); font-weight: 650; font-size: 14px; margin-bottom: 2px; }
+.doc-dates { margin: 0; display: grid; gap: 6px; align-content: start; }
+.doc-dates div { display: flex; justify-content: space-between; gap: 12px; }
+.doc-dates dt { color: #8A90A2; }
+.doc-dates dd { margin: 0; font-weight: 600; text-align: right; }
+.doc-dates .doc-due { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--doc-line); }
+.doc-dates .doc-due dt { color: var(--doc-ink); font-weight: 650; }
+.doc-dates .doc-due dd { color: var(--doc-accent); font-weight: 760; font-size: 15px; }
+
+.doc-project { margin-top: 26px; font-size: 14px; font-weight: 600; display: flex; gap: 10px; align-items: baseline; }
+.doc-project span { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A90A2; }
+
+/* Items */
+.doc-items { width: 100%; border-collapse: collapse; margin-top: 28px; }
+.doc-items th { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A90A2; text-align: left; padding: 10px 8px; border-bottom: 1.5px solid var(--doc-ink); }
+.doc-items td { padding: 12px 8px; border-bottom: 1px solid var(--doc-line); vertical-align: top; }
+.doc-items .d { width: 55%; padding-left: 0; }
+.doc-items th.d { padding-left: 0; }
+.doc-items .n { text-align: right; white-space: nowrap; }
+.doc-items tr:last-child td { border-bottom: 0; }
+.doc-items tr { break-inside: avoid; }
+
+/* Totals */
+.doc-bottom { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 8px; border-top: 1px solid var(--doc-line); padding-top: 12px; break-inside: avoid; }
+.doc-stamp-slot { flex: 1; display: flex; justify-content: center; align-items: center; min-height: 1px; }
+.doc-totals { margin: 0; width: 300px; display: grid; gap: 6px; }
+.doc-totals div { display: flex; justify-content: space-between; gap: 16px; }
+.doc-totals dt { color: var(--doc-ink-2); }
+.doc-totals dd { margin: 0; font-weight: 600; }
+.doc-totals .doc-total { margin-top: 6px; padding: 10px 0 0; border-top: 1.5px solid var(--doc-ink); font-size: 16px; }
+.doc-totals .doc-total dt { color: var(--doc-ink); font-weight: 700; }
+.doc-totals .doc-total dd { font-weight: 780; font-size: 20px; letter-spacing: -0.01em; }
+.doc-totals .doc-deposit { margin-top: 4px; padding: 8px 10px; border-radius: 6px; background: var(--doc-soft); color: var(--doc-accent); }
+.doc-totals .doc-deposit dt { color: inherit; font-weight: 650; }
+.doc-totals .doc-deposit dd { color: inherit; font-weight: 750; }
+
+/* Notes, payment details, terms */
+.doc-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; margin-top: 40px; color: var(--doc-ink-2); overflow-wrap: anywhere; }
+.doc-notes:empty { display: none; }
+.doc-notes > div { break-inside: avoid; }
+
+/* Quote acceptance lines */
+.doc-accept { display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px; margin-top: 48px; color: #8A90A2; font-size: 12px; break-inside: avoid; }
+.doc-accept > div { display: grid; gap: 6px; }
+.doc-line { display: block; height: 36px; border-bottom: 1px solid #9CA1B2; }
+
+/* The stamp */
+.doc-stamp {
+  display: grid; justify-items: center; gap: 2px;
+  padding: 10px 22px 8px;
+  border: 4px solid #C8372D; border-radius: 10px;
+  outline: 1.5px solid #C8372D; outline-offset: 3px;
+  color: #C8372D; transform: rotate(-12deg);
+  opacity: 0.88; mix-blend-mode: multiply;
+  animation: stamp-in .42s cubic-bezier(.2, 1.4, .4, 1) both;
+  pointer-events: none;
+}
+.doc-stamp b { font-size: 44px; font-weight: 820; letter-spacing: 0.12em; line-height: 1; text-transform: uppercase; font-stretch: 112%; }
+.doc-stamp span { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; }
+.doc-stamp.accepted { border-color: #11845B; outline-color: #11845B; color: #11845B; }
+.doc-stamp.accepted b { font-size: 34px; }
+@keyframes stamp-in { 0% { opacity: 0; transform: rotate(-24deg) scale(1.9); } 60% { opacity: .95; } 100% { opacity: .88; transform: rotate(-12deg) scale(1); } }
+
+/* ---------- Template: Classic (serif, letterhead feel) ---------- */
+.tpl-classic { font-family: var(--font-serif); font-size: 13.5px; }
+.tpl-classic .doc-from-name { font-size: 21px; font-weight: 650; letter-spacing: 0; }
+.tpl-classic .doc-title { font-weight: 500; font-size: 40px; letter-spacing: 0.01em; color: var(--doc-ink); }
+.tpl-classic .doc-head { padding-bottom: 20px; border-bottom: 3px double var(--doc-accent); }
+.tpl-classic .doc-meta { border-top: 0; margin-top: 24px; }
+.tpl-classic .doc-party h2, .tpl-classic .doc-notes h2, .tpl-classic .doc-items th, .tpl-classic .doc-project span { font-family: var(--font); color: var(--doc-accent); }
+.tpl-classic .doc-items th { border-bottom-color: var(--doc-accent); }
+.tpl-classic .doc-dates .doc-due dd { color: var(--doc-ink); }
+.tpl-classic .doc-totals .doc-total { border-top: 3px double var(--doc-accent); }
+.tpl-classic .doc-totals .doc-total dd { font-weight: 700; }
+
+/* ---------- Template: Modern (colour band, bold) ---------- */
+.tpl-modern { padding-top: 0; }
+.tpl-modern .doc-head { margin: 0 -56px; padding: 40px 56px 34px; background: var(--doc-accent); color: #fff; align-items: center; }
+.tpl-modern .doc-logo { background: #fff; padding: 8px 10px; border-radius: 8px; max-height: 64px; box-sizing: content-box; }
+.tpl-modern .doc-from-name { color: #fff; font-size: 19px; }
+.tpl-modern .doc-small { color: rgba(255, 255, 255, .8); }
+.tpl-modern .doc-title { color: #fff; font-stretch: 118%; font-size: 38px; }
+.tpl-modern .doc-number { color: rgba(255, 255, 255, .82); }
+.tpl-modern .doc-meta { border-top: 0; margin-top: 30px; padding-top: 0; }
+.tpl-modern .doc-dates { background: var(--doc-soft); border-radius: 10px; padding: 14px 16px; }
+.tpl-modern .doc-items th { background: var(--doc-soft); border-bottom: 0; padding: 10px 10px; color: var(--doc-accent); }
+.tpl-modern .doc-items th.d { padding-left: 10px; border-radius: 6px 0 0 6px; }
+.tpl-modern .doc-items th:last-child { border-radius: 0 6px 6px 0; }
+.tpl-modern .doc-items td { padding: 12px 10px; }
+.tpl-modern .doc-items td.d { padding-left: 10px; }
+.tpl-modern .doc-bottom { border-top: 0; }
+.tpl-modern .doc-totals .doc-total { border: 0; background: var(--doc-accent); color: #fff; border-radius: 8px; padding: 12px 14px; }
+.tpl-modern .doc-totals .doc-total dt, .tpl-modern .doc-totals .doc-total dd { color: #fff; }
+.tpl-modern .doc-notes { background: #F6F7F9; border-radius: 10px; padding: 18px 20px; }
+
+/* ---------- Template: Minimal (quiet, lots of space) ---------- */
+.tpl-minimal { padding: 64px 64px 64px; }
+.tpl-minimal .doc-head { align-items: center; }
+.tpl-minimal .doc-from-name { font-weight: 600; font-size: 16px; }
+.tpl-minimal .doc-title { font-weight: 300; font-size: 44px; color: var(--doc-ink); letter-spacing: -0.03em; }
+.tpl-minimal .doc-number { font-weight: 500; }
+.tpl-minimal .doc-meta { border-top: 0; margin-top: 56px; padding-top: 0; }
+.tpl-minimal .doc-items { margin-top: 40px; }
+.tpl-minimal .doc-items th { border-bottom: 1px solid var(--doc-line); font-weight: 600; }
+.tpl-minimal .doc-bottom { border-top: 1px solid var(--doc-line); }
+.tpl-minimal .doc-totals .doc-total { border-top: 1px solid var(--doc-line); }
+.tpl-minimal .doc-totals .doc-total dd { color: var(--doc-accent); font-weight: 650; font-size: 24px; }
+.tpl-minimal .doc-dates .doc-due dd { font-weight: 650; }
+
+/* ---------- Preview frame (scaled page) ---------- */
+.doc-frame { position: relative; overflow: hidden; border-radius: 6px; box-shadow: var(--shadow-lg); background: #fff; }
+.doc-scale { position: absolute; left: 0; top: 0; transform-origin: top left; }
+
+/* ---------- Print: only the document ---------- */
+#print-root { display: none; }
+@media print {
+  html, body { background: #fff !important; }
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; }
+  #print-root .doc { width: 100% !important; min-height: 0 !important; padding-bottom: 0; box-shadow: none; transform: none !important; position: static !important; overflow: visible; }
+  #print-root .tpl-modern .doc-head { margin-top: 0; }
+  #print-root * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #print-root .doc-stamp { animation: none; }
+}

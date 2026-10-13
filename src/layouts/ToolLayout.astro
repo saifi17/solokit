@@ -1,26 +1,29 @@
 ---
-// Layout for one tool page: title + intro, the tool itself, then an
-// explanation article, an FAQ and related tools. The FAQ also goes to Google
-// as structured data (FAQPage), which can show up directly in search results.
+// Layout for every tool page:
+//   heading -> the tool on its workbench band -> how-to + FAQ -> previous/next step.
+// The FAQ is also sent to Google as structured data.
 import Base from './Base.astro';
 import Icon from '../components/Icon.astro';
-import { tools, toolBySlug } from '../data/tools.js';
+import { tools, toolBySlug, toolUrl } from '../data/tools';
 
-const { slug, title, description, h1, lede, faq = [] } = Astro.props;
+type Faq = [string, string];
+const { slug, title, description, h1, lede, faq = [] as Faq[], trust = [] as string[] } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const tool = toolBySlug(slug);
-const pageUrl = new URL(`${base}tools/${slug}/`, Astro.site).href;
-const related = tools.filter((t) => t.slug !== slug).slice(0, 4);
+const pageUrl = new URL(toolUrl(base, slug), Astro.site).href;
+const prev = tools.find((t) => t.step === tool.step - 1);
+const next = tools.find((t) => t.step === tool.step + 1);
 
-const jsonLd = [
+const jsonLd: object[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: tool.name,
+    name: tool.title,
     url: pageUrl,
     description,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Any (runs in the browser)',
+    isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   },
   {
@@ -28,7 +31,7 @@ const jsonLd = [
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'SoloKit', item: new URL(base, Astro.site).href },
-      { '@type': 'ListItem', position: 2, name: tool.name, item: pageUrl },
+      { '@type': 'ListItem', position: 2, name: tool.title, item: pageUrl },
     ],
   },
 ];
@@ -36,61 +39,76 @@ if (faq.length) {
   jsonLd.push({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faq.map(([q, a]) => ({
-      '@type': 'Question',
-      name: q,
-      acceptedAnswer: { '@type': 'Answer', text: a },
-    })),
+    mainEntity: faq.map(([q, a]: Faq) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
   });
 }
 ---
-<Base title={title} description={description} jsonLd={jsonLd} current="tools">
-  <div class="wrap">
-    <section class="tool-hero">
-      <nav class="crumbs" aria-label="Breadcrumb"><a href={base}>All tools</a> / {tool.name}</nav>
-      <h1>{h1}</h1>
-      <p class="lede">{lede}</p>
-    </section>
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section class="wrap tool-head">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={base}>SoloKit</a><span aria-hidden="true">/</span><a href={`${base}#tools`}>Tools</a><span aria-hidden="true">/</span><span>{tool.name}</span>
+    </nav>
+    <p class="stage-chip"><b>{tool.step}</b>Step {tool.step} of {tools.length}: {tool.stage}</p>
+    <h1>{h1}</h1>
+    <p class="lede">{lede}</p>
+    {trust.length > 0 && (
+      <p class="trust">{trust.map((t: string) => <span><Icon name="check" size={16} />{t}</span>)}</p>
+    )}
+  </section>
 
-    <slot />
-
-    <div class="article">
-      <slot name="article" />
-
-      {faq.length > 0 && (
-        <>
-          <h2>Questions people ask</h2>
-          <div class="faq">
-            {faq.map(([q, a]) => (
-              <details>
-                <summary>{q}</summary>
-                <p>{a}</p>
-              </details>
-            ))}
-          </div>
-        </>
-      )}
-
-      <h2>More tools for freelancers</h2>
-      <ul class="tool-list">
-        {related.map((t) => (
-          <li>
-            {t.live ? (
-              <a class="tool-row" href={`${base}tools/${t.slug}/`}>
-                <span class="ic"><Icon name={t.icon} /></span>
-                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
-                <span class="go"><Icon name="arrow" size={20} /></span>
-              </a>
-            ) : (
-              <div class="tool-row soon">
-                <span class="ic"><Icon name={t.icon} /></span>
-                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
-                <span class="soon-tag">Coming soon</span>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+  <section class="bench" aria-label={tool.title}>
+    <div class="wrap">
+      <slot />
     </div>
+  </section>
+
+  <div class="wrap">
+    <div class="reading">
+      <article class="prose">
+        <slot name="article" />
+        {faq.length > 0 && (
+          <>
+            <h2>Common questions</h2>
+            <div class="faq">
+              {faq.map(([q, a]: Faq) => (
+                <details>
+                  <summary>{q}</summary>
+                  <p>{a}</p>
+                </details>
+              ))}
+            </div>
+          </>
+        )}
+      </article>
+      <aside class="aside-card" aria-label="All tools">
+        <h3>The whole job, start to finish</h3>
+        <ul>
+          {tools.map((t) => (
+            <li>
+              {t.slug === slug
+                ? <strong>{t.step}. {t.name}</strong>
+                : <a href={toolUrl(base, t.slug)}>{t.step}. {t.name}</a>}
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+
+    <nav class="step-nav" aria-label="Previous and next step">
+      {prev && (
+        <a href={toolUrl(base, prev.slug)}>
+          <span class="dir">Step {prev.step}: {prev.stage}</span>
+          <b>{prev.name}</b>
+          <span class="d">{prev.short}</span>
+        </a>
+      )}
+      {next && (
+        <a class="next" href={toolUrl(base, next.slug)}>
+          <span class="dir">Next, step {next.step}: {next.stage}</span>
+          <b>{next.name}</b>
+          <span class="d">{next.short}</span>
+        </a>
+      )}
+    </nav>
   </div>
 </Base>
