@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base title="About SoloKit" description="SoloKit is a small set of free, private tools for freelancers, made by Saif Siddiqui, a freelance developer and designer." current="about">
+  <div class="wrap page">
+    <h1>About SoloKit</h1>
+    <p class="lede">SoloKit is a small set of free tools for the business side of freelancing: deciding what to charge, sending invoices and finding a time to talk with clients abroad.</p>
+
+    <h2>Why it exists</h2>
+    <p>Most freelancers didn't start freelancing to do admin. Yet pricing, invoicing and scheduling eat hours every month, and many online tools ask for an account, add a watermark or upload your client data before they'll help. SoloKit does one job per page, quickly, with nothing to sign up for.</p>
+
+    <h2>Your data stays with you</h2>
+    <p>Every tool runs entirely in your browser. What you type is not sent to a server. Some tools save your last entries on your own device so you can pick up where you left off; you can clear them at any time. Read the <a href={`${base}privacy/`}>privacy policy</a> for details.</p>
+
+    <h2>Who makes it</h2>
+    <p>SoloKit is built and maintained by <a href="https://saifi17.github.io">Saif Siddiqui</a>, a freelance full-stack developer and UI/UX designer. Suggestions for new tools are welcome at <a href="mailto:saifsiddiqui1717@gmail.com">saifsiddiqui1717@gmail.com</a>.</p>
+
+    <h2>A note on the numbers</h2>
+    <p>The calculators give planning estimates, not tax, legal or financial advice. Tax rules differ by country, so check important decisions with a qualified accountant.</p>
+  </div>
+</Base>

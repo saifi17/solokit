@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import RateCalculator from '../components/RateCalculator.astro';
+import { tools } from '../data/tools.js';
+
+const base = import.meta.env.BASE_URL;
+const siteUrl = new URL(base, Astro.site).href;
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'SoloKit',
+  url: siteUrl,
+  description: 'Free, private tools for freelancers: hourly rate calculator, invoice generator and time zone meeting planner.',
+}];
+---
+<Base
+  title="SoloKit: Free Tools for Freelancers (Rates, Invoices, Time Zones)"
+  description="Free tools for the business side of freelancing: work out your hourly rate, make PDF invoices and plan calls across time zones. No sign-up, nothing uploaded."
+  jsonLd={jsonLd}
+>
+  <div class="wrap">
+    <section class="home-hero">
+      <h1>The business side of freelancing, sorted in a minute.</h1>
+      <p class="lede">Free tools for pricing your work, billing clients and planning calls across time zones. No account, and your numbers stay in your browser.</p>
+    </section>
+
+    <section class="home-demo" aria-labelledby="demo-title">
+      <h2 id="demo-title" class="demo-title">What should you charge? Try it.</h2>
+      <RateCalculator compact />
+    </section>
+
+    <section id="tools" class="home-tools" aria-labelledby="tools-title">
+      <h2 id="tools-title">All tools</h2>
+      <ul class="tool-list">
+        {tools.map((t) => (
+          <li>
+            {t.live ? (
+              <a class="tool-row" href={`${base}tools/${t.slug}/`}>
+                <span class="ic"><Icon name={t.icon} /></span>
+                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
+                <span class="go"><Icon name="arrow" size={20} /></span>
+              </a>
+            ) : (
+              <div class="tool-row soon">
+                <span class="ic"><Icon name={t.icon} /></span>
+                <span><b>{t.name}</b><span class="d">{t.short}</span></span>
+                <span class="soon-tag">Coming soon</span>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="home-why">
+      <h2>Made for people who work alone</h2>
+      <div class="why-cols">
+        <p><strong>Private by design.</strong> Every tool runs in your browser. Rates, client names and invoices are never sent to a server.</p>
+        <p><strong>No sign-up, no watermark.</strong> Open a tool and use it. Invoices come out clean, with your name on them, not ours.</p>
+        <p><strong>Built by a freelancer.</strong> Each tool solves a problem from real client work: pricing, getting paid and finding a time to talk.</p>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .home-hero { padding: 64px 0 36px; max-width: 820px; }
+  .home-hero .lede { margin-top: 18px; }
+  .home-demo { padding-bottom: 24px; }
+  .demo-title { font-size: 20px; margin-bottom: 16px; color: var(--ink-2); font-weight: 600; }
+  .home-tools { margin-top: 72px; }
+  .home-tools h2 { margin-bottom: 18px; }
+  .home-why { margin-top: 80px; }
+  .home-why h2 { margin-bottom: 20px; }
+  .why-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; color: var(--ink-2); }
+  .why-cols strong { color: var(--ink); display: block; margin-bottom: 4px; }
+  @media (max-width: 800px) { .why-cols { grid-template-columns: 1fr; gap: 18px; } .home-hero { padding-top: 40px; } }
+</style>

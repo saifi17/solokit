@@ -1,0 +1,396 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const currencies = ['USD', 'GBP', 'EUR', 'CAD', 'AUD', 'INR', 'PKR'];
+const faq = [
+  ['Is this invoice generator really free?',
+   'Yes. There is no sign-up, no watermark and no limit on how many invoices you make.'],
+  ['How do I save the invoice as a PDF?',
+   'Click "Save as PDF". Your browser\'s print window opens; choose "Save as PDF" (or "Microsoft Print to PDF") as the printer and save the file. On a phone, use the share or print option and pick PDF.'],
+  ['Where is my data stored?',
+   'Only in your own browser. The form is saved on your device so you can come back to it, and nothing is uploaded. Click "Start a new invoice" to clear it.'],
+  ['What should a freelance invoice include?',
+   'Your name and contact details, the client\'s details, a unique invoice number, the issue date and due date, a list of the work with prices, the total, and how to pay you. Some countries also require a tax or VAT number.'],
+  ['What payment terms should I use?',
+   '14 or 30 days after the invoice date are the most common terms. Shorter terms, like 7 days, are fine for small jobs and new clients. Whatever you choose, put the exact due date on the invoice.'],
+];
+---
+<ToolLayout
+  slug="invoice-generator"
+  title="Free Invoice Generator for Freelancers (PDF, No Sign-up) | SoloKit"
+  description="Create a professional invoice in your browser and save it as a PDF. Free, no sign-up, no watermark. Your details stay on your device."
+  h1="Free invoice generator"
+  lede="Fill in the form and the invoice builds as you type. Save it as a PDF when it's ready. No account, no watermark, and nothing leaves your device."
+  faq={faq}
+>
+  <div class="tool-body inv" data-invoice>
+    <form class="panel inv-form" novalidate>
+      <fieldset>
+        <legend><h2>From</h2></legend>
+        <div class="fields">
+          <div class="field"><label for="f-name">Your name or business</label><div class="input"><input id="f-name" name="fromName" autocomplete="organization" placeholder="Alex Morgan Design" /></div></div>
+          <div class="field"><label for="f-email">Email</label><div class="input"><input id="f-email" name="fromEmail" type="email" autocomplete="email" placeholder="alex@example.com" /></div></div>
+          <div class="field"><label for="f-addr">Address and tax number</label><div class="input"><textarea id="f-addr" name="fromAddr" rows="2" placeholder="12 King Street, Manchester, UK"></textarea></div><span class="hint">Optional. Add a VAT or tax number if you have one.</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Bill to</h2></legend>
+        <div class="fields">
+          <div class="field"><label for="c-name">Client name</label><div class="input"><input id="c-name" name="toName" placeholder="Northwind Studio Ltd" /></div></div>
+          <div class="field"><label for="c-email">Client email</label><div class="input"><input id="c-email" name="toEmail" type="email" placeholder="accounts@northwind.com" /></div></div>
+          <div class="field"><label for="c-addr">Client address</label><div class="input"><textarea id="c-addr" name="toAddr" rows="2" placeholder="400 Market Street, San Francisco, CA"></textarea></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Invoice details</h2></legend>
+        <div class="fields">
+          <div class="fields-2">
+            <div class="field"><label for="i-no">Invoice number</label><div class="input"><input id="i-no" name="number" value="INV-001" /></div></div>
+            <div class="field"><label for="i-cur">Currency</label><div class="input"><select id="i-cur" name="currency">{currencies.map((c) => <option>{c}</option>)}</select></div></div>
+          </div>
+          <div class="fields-2">
+            <div class="field"><label for="i-date">Issue date</label><div class="input"><input id="i-date" name="date" type="date" /></div></div>
+            <div class="field"><label for="i-due">Due date</label><div class="input"><input id="i-due" name="due" type="date" /></div></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Work</h2></legend>
+        <div class="items" data-items></div>
+        <button type="button" class="btn-text" data-add><Icon name="plus" size={18} /> Add a line</button>
+        <div class="fields-2" style="margin-top:18px">
+          <div class="field"><label for="i-tax">Tax / VAT</label><div class="input"><input id="i-tax" name="tax" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="0" /><span class="unit">%</span></div></div>
+          <div class="field"><label for="i-disc">Discount</label><div class="input"><input id="i-disc" name="discount" type="number" inputmode="decimal" min="0" step="1" value="0" /><span class="unit" data-cur>USD</span></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Payment</h2></legend>
+        <div class="field"><label for="i-notes">How to pay you</label><div class="input"><textarea id="i-notes" name="notes" rows="3" placeholder="Bank transfer: Alex Morgan, IBAN GB00 0000 0000 0000&#10;or PayPal: alex@example.com"></textarea></div><span class="hint">Bank details, PayPal or Wise, and any late payment terms.</span></div>
+      </fieldset>
+    </form>
+
+    <div class="sticky">
+      <div class="inv-actions">
+        <button type="button" class="btn btn-primary" data-print>Save as PDF</button>
+        <button type="button" class="btn btn-ghost" data-reset>Start a new invoice</button>
+      </div>
+      <article class="inv-doc" id="invoice-doc" aria-label="Invoice preview">
+        <header class="inv-top">
+          <div>
+            <p class="inv-from" data-v="fromName">Your business</p>
+            <p class="inv-meta" data-v="fromEmail"></p>
+            <p class="inv-meta pre" data-v="fromAddr"></p>
+          </div>
+          <div class="inv-title">
+            <p class="inv-word">Invoice</p>
+            <p class="inv-meta" data-v="number"></p>
+          </div>
+        </header>
+        <div class="inv-parties">
+          <div>
+            <p class="inv-label">Bill to</p>
+            <p class="inv-strong" data-v="toName">Client name</p>
+            <p class="inv-meta" data-v="toEmail"></p>
+            <p class="inv-meta pre" data-v="toAddr"></p>
+          </div>
+          <dl class="inv-dates">
+            <div><dt>Issued</dt><dd data-v="date"></dd></div>
+            <div><dt>Due</dt><dd data-v="due"></dd></div>
+          </dl>
+        </div>
+        <table class="inv-table">
+          <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+          <tbody data-rows></tbody>
+        </table>
+        <dl class="inv-totals">
+          <div><dt>Subtotal</dt><dd data-t="subtotal"></dd></div>
+          <div data-t-row="discount"><dt>Discount</dt><dd data-t="discount"></dd></div>
+          <div data-t-row="tax"><dt data-t="taxLabel">Tax</dt><dd data-t="tax"></dd></div>
+          <div class="inv-due"><dt>Amount due</dt><dd><mark data-t="total"></mark></dd></div>
+        </dl>
+        <div class="inv-notes" data-notes-wrap>
+          <p class="inv-label">Payment details</p>
+          <p class="pre" data-v="notes"></p>
+        </div>
+      </article>
+      <p class="small muted" style="margin-top:12px">Saved on this device as you type. Nothing is uploaded.</p>
+    </div>
+  </div>
+
+  <Fragment slot="article">
+    <h2>How to make an invoice in a minute</h2>
+    <ol>
+      <li>Add your name, email and, if you have one, your tax or VAT number.</li>
+      <li>Add the client's company name and billing address.</li>
+      <li>Give the invoice a unique number. A simple sequence like INV-001, INV-002 works well and keeps your records tidy.</li>
+      <li>List the work. One line per deliverable or per block of hours makes it easy for the client to approve.</li>
+      <li>Add how you want to be paid, then click <strong>Save as PDF</strong> and email the file.</li>
+    </ol>
+
+    <h2>Tips for getting paid on time</h2>
+    <ul>
+      <li>Send the invoice the day the work is delivered, while it's fresh.</li>
+      <li>Use an exact due date ("Due 30 November") rather than "Net 30"; it's harder to ignore.</li>
+      <li>Address it to the person who pays, often an accounts team, and copy your main contact.</li>
+      <li>Make paying easy: give full bank details or a payment link on the invoice itself.</li>
+      <li>Follow up politely the day after the due date. Most late invoices are forgotten, not disputed.</li>
+    </ul>
+  </Fragment>
+</ToolLayout>
+
+<style>
+  .inv-form fieldset { border: 0; margin: 0 0 28px; padding: 0; min-width: 0; }
+  .inv-form fieldset:last-child { margin-bottom: 0; }
+  .inv-form legend { padding: 0; margin-bottom: 14px; }
+  .inv-form legend h2 { margin: 0; }
+
+  .inv-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  /* The invoice preview is a sheet of paper (A4-like proportions). */
+  .inv-doc { background: var(--sheet); color: var(--ink); padding: 32px 30px; border-radius: 4px; box-shadow: 0 1px 0 rgba(27,42,65,.06), 0 18px 32px -16px rgba(27,42,65,.22); font-size: 13.5px; line-height: 1.5; min-height: 520px; }
+  .inv-top { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+  .inv-from { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .inv-title { text-align: right; }
+  .inv-word { font-family: var(--font-display); font-weight: 750; font-size: 26px; letter-spacing: -0.02em; color: var(--green-ink); }
+  .inv-meta { color: var(--ink-2); }
+  .pre { white-space: pre-line; }
+  .inv-parties { display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; }
+  .inv-label { font-size: 12px; font-weight: 650; color: var(--ink-3); margin-bottom: 2px; }
+  .inv-strong { font-weight: 650; }
+  .inv-dates { margin: 0; display: grid; gap: 4px; align-content: start; text-align: right; }
+  .inv-dates div { display: flex; gap: 12px; justify-content: flex-end; }
+  .inv-dates dt { color: var(--ink-3); }
+  .inv-dates dd { margin: 0; font-weight: 600; min-width: 92px; }
+  .inv-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .inv-table th { font-size: 12px; font-weight: 650; color: var(--ink-3); padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .inv-totals { margin: 16px 0 0 auto; width: min(100%, 260px); display: grid; gap: 6px; }
+  .inv-totals div { display: flex; justify-content: space-between; gap: 12px; }
+  .inv-totals dt { color: var(--ink-2); }
+  .inv-totals dd { margin: 0; font-weight: 600; }
+  .inv-due { margin-top: 6px; padding-top: 10px; border-top: 2px solid var(--ink); font-size: 16px; }
+  .inv-due dt { color: var(--ink); font-weight: 650; }
+  .inv-due mark { background: linear-gradient(transparent 50%, var(--marker) 50%, var(--marker) 92%, transparent 92%); color: inherit; font-family: var(--font-display); font-weight: 750; font-size: 20px; padding: 0 3px; }
+  .inv-notes { margin-top: 28px; padding-top: 14px; border-top: 1px dashed var(--rule); color: var(--ink-2); }
+  @media (max-width: 520px) { .inv-doc { padding: 22px 18px; font-size: 12.5px; } .inv-top, .inv-parties { flex-direction: column; } .inv-title, .inv-dates { text-align: left; } .inv-dates div { justify-content: flex-start; } }
+
+</style>
+
+<style is:global>
+  /* Table cells are created by the script, so these rules must be global
+     (Astro's scoped styles only reach elements written in this file). */
+  .inv-table td { padding: 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .inv-table th { text-align: left; }
+  .inv-doc .inv-table th.num, .inv-doc .inv-table td.num { text-align: right; padding-left: 10px; white-space: nowrap; }
+  .inv-doc .empty { color: var(--ink-3); font-style: italic; }
+
+  /* Print: the script copies the invoice into #print-root (a direct child of
+     <body>) just before printing, and we hide everything else. */
+  #print-root { display: none; }
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    body { background: #fff !important; }
+    body > *:not(#print-root) { display: none !important; }
+    #print-root { display: block; }
+    #print-root .inv-doc { box-shadow: none; padding: 0; min-height: 0; font-size: 11pt; border-radius: 0; }
+    #print-root mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* Line-item rows in the form (created by the script, so global). */
+  .items { display: grid; gap: 12px; margin-bottom: 8px; }
+  .item { display: grid; grid-template-columns: 1fr 76px 110px 36px; gap: 8px; align-items: end; }
+  .item .field > label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .item .rm { width: 36px; height: 46px; display: grid; place-items: center; border: 0; background: none; color: var(--ink-3); cursor: pointer; border-radius: 8px; }
+  .item .rm:hover { color: var(--stamp); background: var(--sheet); }
+  .item:not(:first-child) .field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (max-width: 520px) {
+    .item { grid-template-columns: 1fr 1fr 36px; padding-bottom: 12px; border-bottom: 1px dashed var(--rule); }
+    .item .f-desc { grid-column: 1 / -1; }
+    .item:not(:first-child) .field > label { position: static; width: auto; height: auto; clip: auto; }
+  }
+</style>
+
+<script>
+  // Invoice generator logic. State lives in one object, is saved to
+  // localStorage on every change, and the preview is re-rendered from it.
+  const KEY = 'solokit-invoice-v1';
+  const root = document.querySelector<HTMLElement>('[data-invoice]')!;
+  const form = root.querySelector('form')!;
+  const itemsEl = root.querySelector<HTMLElement>('[data-items]')!;
+
+  type Item = { desc: string; qty: number; rate: number };
+  const iso = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const today = new Date();
+  const inTwoWeeks = new Date(today.getTime() + 14 * 86400000);
+
+  const blank = () => ({
+    fromName: '', fromEmail: '', fromAddr: '', toName: '', toEmail: '', toAddr: '',
+    number: 'INV-001', currency: 'USD', date: iso(today), due: iso(inTwoWeeks),
+    tax: 0, discount: 0, notes: '',
+    items: [{ desc: '', qty: 1, rate: 0 }] as Item[],
+  });
+
+  let state = blank();
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch { /* storage blocked: start fresh */ }
+
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ } };
+
+  // ---- form <-> state ----
+  const simpleFields = ['fromName', 'fromEmail', 'fromAddr', 'toName', 'toEmail', 'toAddr', 'number', 'currency', 'date', 'due', 'tax', 'discount', 'notes'] as const;
+
+  function fillForm() {
+    simpleFields.forEach((name) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement;
+      if (el) el.value = String((state as any)[name] ?? '');
+    });
+    renderItems();
+  }
+
+  function renderItems() {
+    itemsEl.innerHTML = '';
+    state.items.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <div class="field f-desc"><label for="d${i}">Description</label><div class="input"><input id="d${i}" data-k="desc" placeholder="Website redesign, 3 pages" /></div></div>
+        <div class="field"><label for="q${i}">Qty</label><div class="input"><input id="q${i}" data-k="qty" type="number" inputmode="decimal" min="0" step="0.5" /></div></div>
+        <div class="field"><label for="r${i}">Rate</label><div class="input"><input id="r${i}" data-k="rate" type="number" inputmode="decimal" min="0" step="1" /></div></div>
+        <button type="button" class="rm" aria-label="Remove line ${i + 1}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg></button>`;
+      (row.querySelector('[data-k="desc"]') as HTMLInputElement).value = item.desc;
+      (row.querySelector('[data-k="qty"]') as HTMLInputElement).value = String(item.qty);
+      (row.querySelector('[data-k="rate"]') as HTMLInputElement).value = String(item.rate || '');
+      row.addEventListener('input', (e) => {
+        const t = e.target as HTMLInputElement;
+        const k = t.dataset.k as keyof Item;
+        if (k === 'desc') item.desc = t.value;
+        else item[k] = parseFloat(t.value) || 0;
+        update();
+      });
+      row.querySelector('.rm')!.addEventListener('click', () => {
+        state.items.splice(i, 1);
+        if (!state.items.length) state.items.push({ desc: '', qty: 1, rate: 0 });
+        renderItems();
+        update();
+      });
+      itemsEl.appendChild(row);
+    });
+  }
+
+  form.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (!t.name) return;                       // item rows handle themselves
+    (state as any)[t.name] = t.type === 'number' ? (parseFloat(t.value) || 0) : t.value;
+    update();
+  });
+
+  root.querySelector('[data-add]')!.addEventListener('click', () => {
+    state.items.push({ desc: '', qty: 1, rate: 0 });
+    renderItems();
+    (itemsEl.lastElementChild?.querySelector('input') as HTMLInputElement)?.focus();
+    update();
+  });
+
+  root.querySelector('[data-print]')!.addEventListener('click', () => window.print());
+  root.querySelector('[data-reset]')!.addEventListener('click', () => {
+    if (!confirm('Clear this invoice and start a new one?')) return;
+    const next = blank();
+    next.fromName = state.fromName; next.fromEmail = state.fromEmail; next.fromAddr = state.fromAddr;
+    next.notes = state.notes; next.currency = state.currency;
+    next.number = bumpNumber(state.number);  // keep your details, move to the next number
+    state = next;
+    fillForm();
+    update();
+  });
+
+  // INV-007 -> INV-008 (keeps leading zeros)
+  function bumpNumber(n: string) {
+    const m = n.match(/^(.*?)(\d+)(\D*)$/);
+    if (!m) return n;
+    const next = String(parseInt(m[2], 10) + 1).padStart(m[2].length, '0');
+    return m[1] + next + m[3];
+  }
+
+  // ---- preview ----
+  const setText = (sel: string, text: string, placeholder = '') => {
+    root.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+      el.textContent = text || placeholder;
+      el.classList.toggle('empty', !text && !!placeholder);
+    });
+  };
+  const fmtDate = (s: string) => (s ? new Date(s + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+
+  function update() {
+    const money = new Intl.NumberFormat('en', { style: 'currency', currency: state.currency, minimumFractionDigits: 2 });
+    root.querySelectorAll('[data-cur]').forEach((el) => (el.textContent = state.currency));
+
+    setText('[data-v="fromName"]', state.fromName, 'Your business');
+    setText('[data-v="fromEmail"]', state.fromEmail);
+    setText('[data-v="fromAddr"]', state.fromAddr);
+    setText('[data-v="toName"]', state.toName, 'Client name');
+    setText('[data-v="toEmail"]', state.toEmail);
+    setText('[data-v="toAddr"]', state.toAddr);
+    setText('[data-v="number"]', state.number ? `No. ${state.number}` : '');
+    setText('[data-v="date"]', fmtDate(state.date));
+    setText('[data-v="due"]', fmtDate(state.due));
+    setText('[data-v="notes"]', state.notes);
+    (root.querySelector('[data-notes-wrap]') as HTMLElement).hidden = !state.notes;
+
+    const rowsEl = root.querySelector('[data-rows]')!;
+    rowsEl.innerHTML = '';
+    let subtotal = 0;
+    state.items.forEach((it) => {
+      const amount = (it.qty || 0) * (it.rate || 0);
+      subtotal += amount;
+      const tr = document.createElement('tr');
+      const cells = [it.desc || 'Description of work', String(it.qty || 0), money.format(it.rate || 0), money.format(amount)];
+      cells.forEach((c, i) => {
+        const td = document.createElement('td');
+        td.textContent = c;
+        if (i > 0) td.className = 'num';
+        if (i === 0 && !it.desc) td.classList.add('empty');
+        tr.appendChild(td);
+      });
+      rowsEl.appendChild(tr);
+    });
+
+    const discount = Math.min(state.discount || 0, subtotal);
+    const taxable = subtotal - discount;
+    const tax = taxable * ((state.tax || 0) / 100);
+    const total = taxable + tax;
+
+    setText('[data-t="subtotal"]', money.format(subtotal));
+    setText('[data-t="discount"]', `− ${money.format(discount)}`);
+    setText('[data-t="taxLabel"]', `Tax (${state.tax || 0}%)`);
+    setText('[data-t="tax"]', money.format(tax));
+    setText('[data-t="total"]', money.format(total));
+    (root.querySelector('[data-t-row="discount"]') as HTMLElement).hidden = !discount;
+    (root.querySelector('[data-t-row="tax"]') as HTMLElement).hidden = !state.tax;
+
+    save();
+  }
+
+  // The browser uses the page title as the PDF file name, so name it after
+  // the invoice while printing and put the normal title back afterwards.
+  const originalTitle = document.title;
+  window.addEventListener('beforeprint', () => {
+    document.title = `Invoice ${state.number}${state.toName ? ' - ' + state.toName : ''}`;
+    let pr = document.getElementById('print-root');
+    if (!pr) { pr = document.createElement('div'); pr.id = 'print-root'; document.body.appendChild(pr); }
+    pr.innerHTML = '';
+    pr.appendChild(root.querySelector('#invoice-doc')!.cloneNode(true));
+  });
+  window.addEventListener('afterprint', () => {
+    document.title = originalTitle;
+    document.getElementById('print-root')?.remove();
+  });
+
+  fillForm();
+  update();
+</script>

@@ -1,0 +1,97 @@
+---
+// The shell every page uses: <head> with SEO tags, the header and the footer.
+import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/instrument-sans';
+import '../styles/global.css';
+import { tools } from '../data/tools.js';
+
+const {
+  title,                 // full <title> text
+  description,           // meta description (~150 characters)
+  jsonLd = [],           // structured data objects for Google
+  current = '',          // which nav item is active
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL;          // "/solokit/"
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(`${base}og.png`, Astro.site).href;
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="sitemap" href={`${base}sitemap-index.xml`} />
+    <meta name="theme-color" content="#EEF2F6" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SoloKit" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {jsonLd.map((data) => (
+      <script type="application/ld+json" set:html={JSON.stringify(data)} />
+    ))}
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-head">
+      <div class="wrap">
+        <a class="brand" href={base}>
+          <img src={`${base}favicon.svg`} alt="" width="28" height="28" />
+          SoloKit
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <a href={`${base}#tools`} aria-current={current === 'tools' ? 'page' : undefined}>Tools</a>
+          <a href={`${base}about/`} aria-current={current === 'about' ? 'page' : undefined}>About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="brand" href={base}>
+              <img src={`${base}favicon.svg`} alt="" width="28" height="28" />
+              SoloKit
+            </a>
+            <p style="margin-top:10px;max-width:36ch">Free, private tools for freelancers. Everything runs in your browser, so your numbers never leave your device.</p>
+          </div>
+          <div>
+            <h3>Tools</h3>
+            <ul>
+              {tools.filter((t) => t.live).map((t) => (
+                <li><a href={`${base}tools/${t.slug}/`}>{t.name}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3>SoloKit</h3>
+            <ul>
+              <li><a href={`${base}about/`}>About</a></li>
+              <li><a href={`${base}privacy/`}>Privacy policy</a></li>
+              <li><a href="mailto:saifsiddiqui1717@gmail.com">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>© {year} SoloKit</span>
+          <span>Made by <a href="https://saifi17.github.io">Saif Siddiqui</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

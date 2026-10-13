@@ -1,0 +1,146 @@
+---
+// Freelance hourly rate calculator.
+// `compact` shows only the three main inputs (used on the home page);
+// the full version adds costs, tax and currency.
+import Icon from './Icon.astro';
+const { compact = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const currencies = [
+  ['USD', 'US dollar ($)'], ['GBP', 'British pound (£)'], ['EUR', 'Euro (€)'],
+  ['CAD', 'Canadian dollar (C$)'], ['AUD', 'Australian dollar (A$)'],
+  ['INR', 'Indian rupee (₹)'], ['PKR', 'Pakistani rupee (Rs)'],
+];
+---
+<div class="rate-calc tool-body" data-rate-calc data-compact={compact ? '1' : '0'}>
+  <form class="panel" novalidate>
+    <h2>Your numbers</h2>
+    <div class="fields">
+      {!compact && (
+        <div class="field">
+          <label for="rc-currency">Currency</label>
+          <div class="input">
+            <select id="rc-currency" name="currency">
+              {currencies.map(([code, label]) => <option value={code}>{label}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
+
+      <div class="field">
+        <label for="rc-income">Take-home pay you want per year</label>
+        <div class="input"><input id="rc-income" name="income" type="number" inputmode="decimal" min="0" step="1000" value="60000" /><span class="unit" data-cur-code>USD</span></div>
+        <span class="hint">What you want to keep after tax and business costs.</span>
+      </div>
+
+      {!compact && (
+        <div class="fields-2">
+          <div class="field">
+            <label for="rc-costs">Business costs per year</label>
+            <div class="input"><input id="rc-costs" name="costs" type="number" inputmode="decimal" min="0" step="100" value="6000" /><span class="unit" data-cur-code>USD</span></div>
+            <span class="hint">Software, laptop, internet, insurance.</span>
+          </div>
+          <div class="field">
+            <label for="rc-tax">Income tax rate</label>
+            <div class="input"><input id="rc-tax" name="tax" type="number" inputmode="decimal" min="0" max="90" step="1" value="25" /><span class="unit">%</span></div>
+            <span class="hint">Your average rate, not the top bracket.</span>
+          </div>
+        </div>
+      )}
+
+      <div class="fields-2">
+        <div class="field">
+          <label for="rc-hours">Billable hours per week</label>
+          <div class="input"><input id="rc-hours" name="hours" type="number" inputmode="decimal" min="1" max="80" step="1" value="25" /><span class="unit">hours</span></div>
+          <span class="hint">Paid client work only.</span>
+        </div>
+        <div class="field">
+          <label for="rc-off">Weeks off per year</label>
+          <div class="input"><input id="rc-off" name="off" type="number" inputmode="decimal" min="0" max="51" step="1" value="6" /><span class="unit">weeks</span></div>
+          <span class="hint">Holidays, sick days, public holidays.</span>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="sticky">
+    <section class="slip" aria-live="polite">
+      <p class="slip-title">Charge at least</p>
+      <p class="slip-big"><mark data-out="rate">$75</mark> <small>/ hour</small></p>
+      <p class="slip-sub" data-out="day">That's $600 for an 8-hour day.</p>
+      <ul class="slip-rows">
+        <li><span>Revenue you need</span><span class="lead"></span><b data-out="revenue">—</b></li>
+        <li><span>Per month</span><span class="lead"></span><b data-out="month">—</b></li>
+        {!compact && <li><span>Set aside for tax</span><span class="lead"></span><b data-out="taxAmt">—</b></li>}
+        {!compact && <li><span>Business costs</span><span class="lead"></span><b data-out="costsOut">—</b></li>}
+        <li><span>Billable hours a year</span><span class="lead"></span><b data-out="yearHours">—</b></li>
+      </ul>
+      <p class="slip-note" data-out="note">
+        {compact ? 'Assumes 25% tax and $6,000 of yearly costs.' : 'A minimum, not a target. Add a margin for slow months and late payers.'}
+      </p>
+    </section>
+    {compact && (
+      <a class="btn btn-ghost" style="margin-top:18px" href={`${base}tools/freelance-hourly-rate-calculator/`}>
+        Add your costs and tax <Icon name="arrow" size={18} />
+      </a>
+    )}
+  </div>
+</div>
+
+<script>
+  // Runs in the browser. Recalculates the slip every time an input changes.
+  function setup(root: HTMLElement) {
+    const form = root.querySelector('form')!;
+    const out = (name: string) => root.querySelector<HTMLElement>(`[data-out="${name}"]`);
+    const num = (name: string, fallback: number) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement | null;
+      if (!el) return fallback;              // input not shown (compact mode)
+      const v = parseFloat(el.value);
+      return Number.isFinite(v) ? v : NaN;
+    };
+
+    function update() {
+      const currencyEl = form.elements.namedItem('currency') as HTMLSelectElement | null;
+      const currency = currencyEl ? currencyEl.value : 'USD';
+      const money = new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 });
+      root.querySelectorAll('[data-cur-code]').forEach((el) => (el.textContent = currency));
+
+      const income = num('income', 60000);
+      const costs = num('costs', 6000);
+      const tax = num('tax', 25) / 100;
+      const hours = num('hours', 25);
+      const off = num('off', 6);
+
+      const weeks = 52 - off;
+      const yearHours = hours * weeks;
+      const valid = [income, costs, tax, hours, off].every(Number.isFinite)
+        && income >= 0 && costs >= 0 && tax >= 0 && tax < 0.9 && yearHours > 0;
+
+      if (!valid) {
+        out('rate')!.textContent = '—';
+        out('day')!.textContent = 'Check your numbers: hours and weeks worked must be above zero, and tax below 90%.';
+        ['revenue', 'month', 'taxAmt', 'costsOut', 'yearHours'].forEach((k) => { const el = out(k); if (el) el.textContent = '—'; });
+        return;
+      }
+
+      // Tax is paid on profit, so first gross up the take-home pay,
+      // then add business costs to get the revenue you must invoice.
+      const profitBeforeTax = income / (1 - tax);
+      const revenue = profitBeforeTax + costs;
+      const rate = Math.ceil(revenue / yearHours);
+
+      out('rate')!.textContent = money.format(rate);
+      out('day')!.textContent = `That's ${money.format(rate * 8)} for an 8-hour day.`;
+      out('revenue')!.textContent = money.format(revenue);
+      out('month')!.textContent = money.format(revenue / 12);
+      const taxEl = out('taxAmt'); if (taxEl) taxEl.textContent = money.format(profitBeforeTax - income);
+      const costsEl = out('costsOut'); if (costsEl) costsEl.textContent = money.format(costs);
+      out('yearHours')!.textContent = new Intl.NumberFormat('en').format(Math.round(yearHours));
+    }
+
+    form.addEventListener('input', update);
+    form.addEventListener('submit', (e) => e.preventDefault());
+    update();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rate-calc]').forEach(setup);
+</script>

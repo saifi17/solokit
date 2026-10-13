@@ -1,0 +1,337 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import { cities } from '../../data/cities.js';
+
+const faq = [
+  ['How do I find a meeting time across time zones?',
+   'Add your city and your clients\' cities, set your working hours, and the planner highlights the hours when everyone is at work. Those hours are your best meeting slots.'],
+  ['Does it handle daylight saving time?',
+   'Yes. Pick the date of the meeting and the planner uses the correct offset for each city on that day, because clocks change on different dates in the US, Europe and elsewhere.'],
+  ['What if there are no shared working hours?',
+   'The planner suggests the hour that asks the least of everyone. With very distant clients, like California and India, it is common for one side to start early or stay late, or to work asynchronously by email and recorded video.'],
+  ['Is my location stored?',
+   'No. Your time zone is read from your device to pick a starting city, and your choices are saved only in your browser.'],
+];
+---
+<ToolLayout
+  slug="time-zone-meeting-planner"
+  title="Time Zone Meeting Planner for Freelancers & Remote Teams | SoloKit"
+  description="Find the best meeting time with clients in other countries. See shared working hours across cities, with daylight saving handled for you. Free."
+  h1="Time zone meeting planner"
+  lede="Add your clients' cities to see the working hours you share. The best meeting slots are highlighted, and daylight saving is handled for the date you pick."
+  faq={faq}
+>
+  <div class="tz" data-tz>
+    <form class="panel tz-controls" novalidate>
+      <div class="field">
+        <label for="tz-add">Add a city</label>
+        <div class="input">
+          <select id="tz-add">
+            <option value="">Choose a city…</option>
+            {cities.map(([name, zone]) => <option value={`${name}|${zone}`}>{name}</option>)}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="tz-date">Meeting date</label>
+        <div class="input"><input id="tz-date" type="date" /></div>
+      </div>
+      <div class="field">
+        <span class="label" id="tz-hours-label">Working hours</span>
+        <div class="tz-hours" role="group" aria-labelledby="tz-hours-label">
+          <div class="input"><select id="tz-start" aria-label="Start"></select></div>
+          <span class="muted">to</span>
+          <div class="input"><select id="tz-end" aria-label="End"></select></div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Clock</span>
+        <div class="tz-toggle" role="radiogroup" aria-label="Clock format">
+          <label><input type="radio" name="clock" value="12" checked /> 12-hour</label>
+          <label><input type="radio" name="clock" value="24" /> 24-hour</label>
+        </div>
+      </div>
+    </form>
+
+    <div class="tz-main">
+      <div class="tz-grid-wrap" tabindex="0" aria-label="Hours in each city. Scroll sideways to see all 24 hours.">
+        <table class="tz-grid">
+          <thead><tr data-head></tr></thead>
+          <tbody data-body></tbody>
+        </table>
+      </div>
+      <div class="tz-legend small muted">
+        <span><i class="sw work"></i> Working hours</span>
+        <span><i class="sw awake"></i> Awake, off work</span>
+        <span><i class="sw night"></i> Night</span>
+        <span><i class="sw best"></i> Everyone is working</span>
+      </div>
+
+      <section class="slip tz-slip" aria-live="polite">
+        <p class="slip-title" data-best-title>Best time to meet</p>
+        <p class="slip-big"><mark data-best>—</mark></p>
+        <p class="slip-sub" data-best-sub></p>
+        <ul class="slip-rows" data-best-rows></ul>
+      </section>
+    </div>
+  </div>
+
+  <Fragment slot="article">
+    <h2>How to use it</h2>
+    <ol>
+      <li>The first row is you. It starts with the time zone your device reports; change it by removing it and adding your city.</li>
+      <li>Add each client's city from the list. You can add as many as you need.</li>
+      <li>Set the hours people usually work. 9 to 5 is the default.</li>
+      <li>Read the highlighted columns: everyone is at work then. The slip below lists that slot in each city's local time, ready to paste into an email.</li>
+    </ol>
+
+    <h2>Working with clients far away</h2>
+    <p>Freelancers in South Asia working for US clients, or Europeans working for Australia, often have one or two shared hours, or none. A few habits help:</p>
+    <ul>
+      <li>Offer two or three specific slots in the client's own time zone, not yours.</li>
+      <li>Keep live calls for decisions. Use written updates or short recorded videos for status.</li>
+      <li>Agree on a reply window, such as "within one working day", so nobody feels ignored overnight.</li>
+      <li>Watch the daylight saving weeks in March, October and November, when the gap between countries shifts by an hour for a week or two.</li>
+    </ul>
+  </Fragment>
+</ToolLayout>
+
+<style>
+  .tz { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .tz { grid-template-columns: 1fr; } }
+  .tz-controls { display: grid; gap: 18px; }
+  .tz-hours { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+  .tz-toggle { display: flex; gap: 18px; font-size: 15px; }
+  .tz-toggle label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .tz-toggle input { accent-color: var(--green); width: 17px; height: 17px; }
+
+  .tz-main { display: grid; gap: 14px; min-width: 0; }
+  .tz-grid-wrap { overflow-x: auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius-m); }
+  .tz-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  .sw.work { background: var(--green-tint); border: 1px solid #b9dccb; }
+  .sw.awake { background: #F4F6F9; border: 1px solid var(--rule); }
+  .sw.night { background: #DCE2EA; }
+  .sw.best { background: var(--marker); }
+  .tz-slip { margin-top: 10px; }
+</style>
+
+<style is:global>
+  .tz-grid { border-collapse: separate; border-spacing: 0; font-size: 13px; width: 100%; }
+  .tz-grid th, .tz-grid td { padding: 0; text-align: center; }
+  .tz-grid thead th { height: 10px; }
+  .tz-grid thead th.best { background: var(--marker); }
+  .tz-grid .city { position: sticky; left: 0; z-index: 1; background: var(--sheet); text-align: left; padding: 10px 14px; min-width: 170px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .tz-grid .city b { display: block; font-weight: 650; font-size: 14.5px; }
+  .tz-grid .city span { color: var(--ink-3); font-size: 12.5px; }
+  .tz-grid .city .you { color: var(--green-ink); font-weight: 600; }
+  .tz-grid .city button { float: right; border: 0; background: none; color: var(--ink-3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 0 0 8px; }
+  .tz-grid .city button:hover { color: var(--stamp); }
+  .tz-grid td.h { min-width: 44px; height: 54px; border-bottom: 1px solid var(--rule); border-right: 1px solid #EEF1F5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tz-grid td.h small { display: block; font-size: 10.5px; color: var(--ink-3); }
+  .tz-grid td.work { background: var(--green-tint); color: var(--green-ink); font-weight: 600; }
+  .tz-grid td.awake { background: #F7F9FB; }
+  .tz-grid td.night { background: #E3E8EF; color: var(--ink-3); }
+  .tz-grid td.best { box-shadow: inset 0 3px 0 var(--marker), inset 0 -3px 0 var(--marker); }
+  .tz-grid td.now { outline: 2px solid var(--ink); outline-offset: -2px; }
+  @media (max-width: 520px) { .tz-grid .city { min-width: 128px; padding: 10px; } }
+</style>
+
+<script>
+  // Time zone planner. Columns are the 24 hours of the chosen date in the
+  // first city's time zone; every other row shows the local time at the
+  // same moment.
+  import { cities } from '../../data/cities.js';
+
+  const KEY = 'solokit-tz-v1';
+  const root = document.querySelector<HTMLElement>('[data-tz]')!;
+  const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+  type Place = { name: string; zone: string };
+
+  // ---- starting state ----
+  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const deviceCity = cities.find(([, z]) => z === deviceZone)?.[0] || deviceZone.split('/').pop()!.replace(/_/g, ' ');
+  let state = {
+    places: [
+      { name: deviceCity, zone: deviceZone },
+      { name: 'New York', zone: 'America/New_York' },
+      { name: 'London', zone: 'Europe/London' },
+    ] as Place[],
+    start: 9, end: 17, clock: '12',
+  };
+  try { const s = localStorage.getItem(KEY); if (s) state = { ...state, ...JSON.parse(s) }; } catch { /* ignore */ }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ } };
+
+  // ---- time helpers ----
+  // How far a zone is ahead of UTC (in ms) at a given instant.
+  function offsetMs(zone: string, instant: number) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+      timeZone: zone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }).formatToParts(new Date(instant)).map((x) => [x.type, x.value]));
+    const asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+    return asUtc - Math.floor(instant / 1000) * 1000;
+  }
+  // The UTC instant for "date at hour h" on the wall clock of `zone`.
+  function instantFor(zone: string, y: number, m: number, d: number, h: number) {
+    const guess = Date.UTC(y, m, d, h);
+    let t = guess - offsetMs(zone, guess);
+    t = guess - offsetMs(zone, t);               // second pass fixes DST edges
+    return t;
+  }
+  // Local wall-clock hour (with fraction, e.g. 14.5) and date label.
+  function local(zone: string, instant: number) {
+    const shifted = new Date(instant + offsetMs(zone, instant));
+    return { hour: shifted.getUTCHours() + shifted.getUTCMinutes() / 60, day: shifted.getUTCDate(), mins: shifted.getUTCMinutes() };
+  }
+  const fmtHour = (h: number, mins = 0, short = false) => {
+    const hh = Math.floor(h) % 24;
+    if (state.clock === '24') return `${String(hh).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    const suffix = hh < 12 ? 'am' : 'pm';
+    const h12 = hh % 12 === 0 ? 12 : hh % 12;
+    if (short) return `${h12}${mins ? ':' + String(mins).padStart(2, '0') : ''}${suffix[0]}`;
+    return `${h12}${mins ? ':' + String(mins).padStart(2, '0') : ''} ${suffix}`;
+  };
+  const isWork = (h: number) => (state.start < state.end ? h >= state.start && h < state.end : h >= state.start || h < state.end);
+  const isAwake = (h: number) => h >= 7 && h < 22;
+
+  // ---- controls ----
+  const dateEl = $<HTMLInputElement>('#tz-date');
+  const now = new Date();
+  dateEl.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+  const startEl = $<HTMLSelectElement>('#tz-start');
+  const endEl = $<HTMLSelectElement>('#tz-end');
+  function fillHourSelects() {
+    [startEl, endEl].forEach((sel, i) => {
+      sel.innerHTML = '';
+      for (let h = 0; h < 24; h++) sel.add(new Option(fmtHour(h), String(h)));
+      sel.value = String(i === 0 ? state.start : state.end);
+    });
+  }
+  root.querySelectorAll<HTMLInputElement>('input[name="clock"]').forEach((r) => {
+    r.checked = r.value === state.clock;
+    r.addEventListener('change', () => { state.clock = r.value; fillHourSelects(); render(); });
+  });
+  startEl.addEventListener('change', () => { state.start = +startEl.value; render(); });
+  endEl.addEventListener('change', () => { state.end = +endEl.value; render(); });
+  dateEl.addEventListener('change', render);
+  $<HTMLSelectElement>('#tz-add').addEventListener('change', (e) => {
+    const sel = e.target as HTMLSelectElement;
+    if (!sel.value) return;
+    const [name, zone] = sel.value.split('|');
+    if (!state.places.some((p) => p.name === name)) state.places.push({ name, zone });
+    sel.value = '';
+    render();
+  });
+
+  // ---- render ----
+  function render() {
+    save();
+    const [y, m, d] = (dateEl.value || '').split('-').map(Number);
+    if (!y) return;
+    const home = state.places[0];
+    const instants = Array.from({ length: 24 }, (_, h) => instantFor(home.zone, y, m - 1, d, h));
+    const nowMs = Date.now();
+
+    // which columns have everyone at work
+    const best = instants.map((t) => state.places.every((p) => isWork(local(p.zone, t).hour)));
+
+    const head = $('[data-head]');
+    head.innerHTML = '<th class="city"><span class="sr-only">City</span></th>' +
+      best.map((b) => `<th class="${b ? 'best' : ''}" aria-hidden="true"></th>`).join('');
+
+    const body = $('[data-body]');
+    body.innerHTML = '';
+    state.places.forEach((p, i) => {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th');
+      th.className = 'city';
+      th.scope = 'row';
+      const nowLocal = local(p.zone, nowMs);
+      const canRemove = state.places.length > 1;
+      th.innerHTML = `${canRemove ? `<button type="button" aria-label="Remove ${p.name}">×</button>` : ''}<b></b><span></span>`;
+      th.querySelector('b')!.textContent = p.name;
+      th.querySelector('span')!.innerHTML = i === 0 ? `<span class="you">You</span> · now ${fmtHour(nowLocal.hour, nowLocal.mins)}` : `now ${fmtHour(nowLocal.hour, nowLocal.mins)}`;
+      th.querySelector('button')?.addEventListener('click', () => { state.places.splice(i, 1); render(); });
+      tr.appendChild(th);
+
+      instants.forEach((t, col) => {
+        const l = local(p.zone, t);
+        const td = document.createElement('td');
+        const cls = ['h', isWork(l.hour) ? 'work' : isAwake(l.hour) ? 'awake' : 'night'];
+        if (best[col]) cls.push('best');
+        if (nowMs >= t && nowMs < t + 3600000) cls.push('now');
+        td.className = cls.join(' ');
+        const homeDay = local(home.zone, t).day;
+        const dayNote = l.day !== homeDay ? `<small>${l.day > homeDay || (homeDay > 25 && l.day < 3) ? '+1 day' : '−1 day'}</small>` : '';
+        td.innerHTML = fmtHour(l.hour, l.mins, true) + dayNote;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+
+    renderSlip(instants, best);
+  }
+
+  // Group consecutive "best" hours into slots; describe the longest one.
+  function renderSlip(instants: number[], best: boolean[]) {
+    const slots: [number, number][] = [];
+    best.forEach((b, i) => {
+      if (!b) return;
+      const last = slots[slots.length - 1];
+      if (last && last[1] === i) last[1] = i + 1; else slots.push([i, i + 1]);
+    });
+    const rows = $('[data-best-rows]');
+    rows.innerHTML = '';
+    const title = $('[data-best-title]');
+    const big = $('[data-best]');
+    const sub = $('[data-best-sub]');
+    const home = state.places[0];
+
+    let from: number, to: number;
+    if (slots.length) {
+      [from, to] = slots.sort((a, b) => (b[1] - b[0]) - (a[1] - a[0]))[0];
+      const hrs = to - from;
+      title.textContent = 'Best time to meet';
+      sub.textContent = `${hrs} shared working hour${hrs === 1 ? '' : 's'}, in ${home.name} time.`;
+    } else {
+      // No overlap: pick the hour where the fewest people are outside work,
+      // preferring hours when everyone is at least awake.
+      const score = instants.map((t) => state.places.reduce((s, p) => {
+        const h = local(p.zone, t).hour;
+        return s + (isWork(h) ? 0 : isAwake(h) ? 1 : 5);
+      }, 0));
+      from = score.indexOf(Math.min(...score));
+      to = from + 1;
+      title.textContent = 'No shared working hours';
+      sub.textContent = 'Closest option, with someone outside their usual hours:';
+    }
+    scrollToColumn(from);
+    const a = local(home.zone, instants[from]);
+    const endInstant = instants[from] + (to - from) * 3600000;
+    const b = local(home.zone, endInstant);
+    big.textContent = `${fmtHour(a.hour, a.mins)} – ${fmtHour(b.hour, b.mins)}`;
+
+    state.places.forEach((p) => {
+      const s = local(p.zone, instants[from]);
+      const e = local(p.zone, endInstant);
+      const li = document.createElement('li');
+      li.innerHTML = '<span></span><span class="lead"></span><b></b>';
+      li.querySelector('span')!.textContent = p.name;
+      li.querySelector('b')!.textContent = `${fmtHour(s.hour, s.mins)} – ${fmtHour(e.hour, e.mins)}`;
+      rows.appendChild(li);
+    });
+  }
+
+  // Scroll the grid sideways so the suggested slot is in view.
+  function scrollToColumn(col: number) {
+    const wrap = $('.tz-grid-wrap');
+    const cell = root.querySelector<HTMLElement>(`[data-body] tr:first-child td:nth-of-type(${col + 1})`);
+    const label = root.querySelector<HTMLElement>('[data-body] .city');
+    if (!cell || !label) return;
+    wrap.scrollLeft = Math.max(0, cell.offsetLeft - label.offsetWidth - 2 * cell.offsetWidth);
+  }
+
+  fillHourSelects();
+  render();
+</script>
